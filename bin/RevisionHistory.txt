@@ -1,0 +1,4 @@
+DLLVersionInspector Change Log
+
+Version 1.0.4329; November 8, 2011
+	- Initial Release

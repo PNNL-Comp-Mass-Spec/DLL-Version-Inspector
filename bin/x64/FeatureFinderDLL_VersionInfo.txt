@@ -1,0 +1,3 @@
+FileName=FeatureFinder.dll
+Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\LCMSFeatureFinder\FeatureFinder.dll
+Version=FeatureFinder, Version=2.1.10160.17899

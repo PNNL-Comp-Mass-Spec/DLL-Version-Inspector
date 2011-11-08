@@ -1,0 +1,4 @@
+FileName=LCMSFeatureFinder.exe
+Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\LCMSFeatureFinder\LCMSFeatureFinder.exe
+Version=
+Error=Exception determining Assembly info for LCMSFeatureFinder.exe: Could not load file or assembly 'file:///F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\LCMSFeatureFinder\LCMSFeatureFinder.exe' or one of its dependencies. An attempt was made to load a program with an incorrect format.
