@@ -1,0 +1,3 @@
+FileName=ProteinCoverageSummarizer.dll
+Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\32Bit_DLL_Examples\ProteinCoverageSummarizer.dll
+Version=ProteinCoverageSummarizer, Version=1.1.4309.25868

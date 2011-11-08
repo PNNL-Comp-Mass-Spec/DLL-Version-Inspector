@@ -1,8 +1,8 @@
 Option Strict On
 
-' This program inspects a .NET DLL to determine the version.  
+' This program inspects a .NET DLL or .Exe to determine the version.  
 ' This allows a 32-bit .NET application to call this program via the 
-' command prompt to determine the version of a 64-bit DLL.
+' command prompt to determine the version of a 64-bit DLL or Exe.
 '
 ' -------------------------------------------------------------------------------
 ' Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
@@ -16,7 +16,7 @@ Option Strict On
 Module modMain
 	Public Const PROGRAM_DATE As String = "November 8, 2011"
 
-	Private mDLLFilePath As String = String.Empty
+	Private mFilePath As String = String.Empty
 	Private mVersionInfoFilePath As String = String.Empty
 
 	Public Function Main() As Integer
@@ -42,9 +42,9 @@ Module modMain
 				intReturnCode = -1
 			Else
 
-				If Not String.IsNullOrWhiteSpace(mDLLFilePath) Then
+				If Not String.IsNullOrWhiteSpace(mFilePath) Then
 					Dim blnSuccess As Boolean
-					blnSuccess = DetermineDLLVersion(mDLLFilePath, mVersionInfoFilePath)
+					blnSuccess = DetermineVersion(mFilePath, mVersionInfoFilePath)
 
 					If Not blnSuccess Then
 						intReturnCode = 99
@@ -66,19 +66,19 @@ Module modMain
 
 	End Function
 
-	Private Function DetermineDLLVersion(ByVal strDLLFilePath As String, ByVal strVersionInfoFilePath As String) As Boolean
+	Private Function DetermineVersion(ByVal strFilePath As String, ByVal strVersionInfoFilePath As String) As Boolean
 
 		Dim ioFileInfo As System.IO.FileInfo
 		Dim strToolVersionInfo As String = String.Empty
 		Dim blnSuccess As Boolean = False
 
 		Try
-			ioFileInfo = New System.IO.FileInfo(strDLLFilePath)
+			ioFileInfo = New System.IO.FileInfo(strFilePath)
 
 			If Not ioFileInfo.Exists Then
-				Dim strErrorMessage As String = "Error: DLL not found: " & strDLLFilePath
+				Dim strErrorMessage As String = "Error: File not found: " & strFilePath
 				ShowErrorMessage(strErrorMessage)
-				SaveDLLVersionInfo(strDLLFilePath, strVersionInfoFilePath, strToolVersionInfo, strErrorMessage)
+				SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo, strErrorMessage)
 				blnSuccess = False
 			Else
 
@@ -87,7 +87,7 @@ Module modMain
 
 				strToolVersionInfo = oAssemblyName.Name & ", Version=" & oAssemblyName.Version.ToString()
 
-				blnSuccess = SaveDLLVersionInfo(strDLLFilePath, strVersionInfoFilePath, strToolVersionInfo)
+				blnSuccess = SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo)
 			End If
 
 		Catch ex As Exception
@@ -95,9 +95,9 @@ Module modMain
 			'  <startup useLegacyV2RuntimeActivationPolicy="true">
 			'    <supportedRuntime version="v4.0" />
 			'  </startup>
-			Dim strErrorMessage As String = "Exception determining Assembly info for " & System.IO.Path.GetFileName(strDLLFilePath) & ": " & ex.Message
+			Dim strErrorMessage As String = "Exception determining Assembly info for " & System.IO.Path.GetFileName(strFilePath) & ": " & ex.Message
 			ShowErrorMessage(strErrorMessage)
-			SaveDLLVersionInfo(strDLLFilePath, strVersionInfoFilePath, strToolVersionInfo, strErrorMessage)
+			SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo, strErrorMessage)
 			blnSuccess = False
 		End Try
 
@@ -113,13 +113,13 @@ Module modMain
 		Return System.Reflection.Assembly.GetExecutingAssembly().Location
 	End Function
 
-	Private Function SaveDLLVersionInfo(ByVal strDllFilePath As String, ByVal strVersionInfoFilePath As String, ByVal strToolVersionInfo As String) As Boolean
-		Return SaveDLLVersionInfo(strDllFilePath, strVersionInfoFilePath, strToolVersionInfo, String.Empty)
+	Private Function SaveVersionInfo(ByVal strFilePath As String, ByVal strVersionInfoFilePath As String, ByVal strToolVersionInfo As String) As Boolean
+		Return SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo, String.Empty)
 	End Function
 
-	Private Function SaveDLLVersionInfo(ByVal strDllFilePath As String, ByVal strVersionInfoFilePath As String, ByVal strToolVersionInfo As String, ByVal strErrorMessage As String) As Boolean
+	Private Function SaveVersionInfo(ByVal strFilePath As String, ByVal strVersionInfoFilePath As String, ByVal strToolVersionInfo As String, ByVal strErrorMessage As String) As Boolean
 
-		Dim ioDllFileInfo As System.IO.FileInfo
+		Dim ioFileInfo As System.IO.FileInfo
 		Dim srOutFile As System.IO.StreamWriter
 		Dim blnSuccess As Boolean = False
 
@@ -128,21 +128,21 @@ Module modMain
 				' Auto-define the output file path
 				Dim ioAppFileInfo As System.IO.FileInfo = New System.IO.FileInfo(GetAppPath())
 
-				strVersionInfoFilePath = System.IO.Path.Combine(ioAppFileInfo.DirectoryName, System.IO.Path.GetFileNameWithoutExtension(strDllFilePath) & "_VersionInfo.txt")
+				strVersionInfoFilePath = System.IO.Path.Combine(ioAppFileInfo.DirectoryName, System.IO.Path.GetFileNameWithoutExtension(strFilePath) & "_VersionInfo.txt")
 			End If
 
 			srOutFile = New System.IO.StreamWriter(New System.IO.FileStream(strVersionInfoFilePath, IO.FileMode.Create, IO.FileAccess.Write, IO.FileShare.Read))
 
-			ioDllFileInfo = New System.IO.FileInfo(strDllFilePath)
+			ioFileInfo = New System.IO.FileInfo(strFilePath)
 
-			If ioDllFileInfo.Exists Then
-				srOutFile.WriteLine("FileName=" & ioDllFileInfo.Name)
-				srOutFile.WriteLine("Path=" & ioDllFileInfo.FullName)
+			If ioFileInfo.Exists Then
+				srOutFile.WriteLine("FileName=" & ioFileInfo.Name)
+				srOutFile.WriteLine("Path=" & ioFileInfo.FullName)
 			Else
-				srOutFile.WriteLine("FileName=" & System.IO.Path.GetFileName(strDllFilePath))
-				srOutFile.WriteLine("Path=" & strDllFilePath)
+				srOutFile.WriteLine("FileName=" & System.IO.Path.GetFileName(strFilePath))
+				srOutFile.WriteLine("Path=" & strFilePath)
 			End If
-			
+
 			srOutFile.WriteLine("Version=" & strToolVersionInfo)
 
 			If Not String.IsNullOrWhiteSpace(strErrorMessage) Then
@@ -153,7 +153,7 @@ Module modMain
 
 			blnSuccess = True
 		Catch ex As Exception
-			ShowErrorMessage("Exception writing DLL version info to the output file at " & strVersionInfoFilePath & ": " & ex.Message)
+			ShowErrorMessage("Exception writing the version info to the output file at " & strVersionInfoFilePath & ": " & ex.Message)
 			blnSuccess = False
 		End Try
 
@@ -176,11 +176,11 @@ Module modMain
 					' Query objParseCommandLine to see if various parameters are present
 
 					If .NonSwitchParameterCount > 0 Then
-						mDLLFilePath = .RetrieveNonSwitchParameter(0)
+						mFilePath = .RetrieveNonSwitchParameter(0)
 					End If
 
 					If .RetrieveValueForParameter("I", strValue) Then
-						mDLLFilePath = String.Copy(strValue)
+						mFilePath = String.Copy(strValue)
 					End If
 
 					If .RetrieveValueForParameter("O", strValue) Then
@@ -211,12 +211,12 @@ Module modMain
 
         Try
 
-			Console.WriteLine("This program inspects a .NET DLL to determine the version.  This allows a 32-bit .NET application to call this program via the command prompt to determine the version of a 64-bit DLL.")
+			Console.WriteLine("This program inspects a .NET DLL or .Exe to determine the version.  This allows a 32-bit .NET application to call this program via the command prompt to determine the version of a 64-bit DLL or Exe.")
             Console.WriteLine()
             Console.WriteLine("Program syntax:" & Environment.NewLine & System.IO.Path.GetFileName(System.Reflection.Assembly.GetExecutingAssembly().Location))
-			Console.WriteLine(" DLLFilePath [/O:VersionInfoFilePath]")
+			Console.WriteLine(" FilePath [/O:VersionInfoFilePath]")
             Console.WriteLine()
-			Console.WriteLine("DLLFilePath is the path to the DLL to inspect")
+			Console.WriteLine("FilePath is the path to the .NET DLL or .NET Exe to inspect")
 			Console.WriteLine("Use /O:VersionInfoFilePath to specify the path to the file to which this program should write the version info")
 			Console.WriteLine()
 

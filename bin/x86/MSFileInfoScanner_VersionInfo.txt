@@ -1,0 +1,3 @@
+FileName=MSFileInfoScanner.exe
+Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\32Bit_DLL_Examples\MSFileInfoScanner.exe
+Version=MSFileInfoScanner, Version=1.1.3782.34146
