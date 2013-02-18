@@ -213,7 +213,7 @@ Module modMain
 
 			Console.WriteLine("This program inspects a .NET DLL or .Exe to determine the version.  This allows a 32-bit .NET application to call this program via the command prompt to determine the version of a 64-bit DLL or Exe.")
             Console.WriteLine()
-            Console.WriteLine("Program syntax:" & Environment.NewLine & System.IO.Path.GetFileName(System.Reflection.Assembly.GetExecutingAssembly().Location))
+            Console.WriteLine("Program syntax:" & Environment.NewLine & System.IO.Path.GetFileName(GetAppPath()))
 			Console.WriteLine(" FilePath [/O:VersionInfoFilePath]")
             Console.WriteLine()
 			Console.WriteLine("FilePath is the path to the .NET DLL or .NET Exe to inspect")
