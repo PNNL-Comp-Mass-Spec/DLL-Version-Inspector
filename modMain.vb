@@ -14,10 +14,28 @@ Option Strict On
 ' 
 
 Module modMain
-	Public Const PROGRAM_DATE As String = "November 8, 2011"
+	Public Const PROGRAM_DATE As String = "June 14, 2013"
 
-	Private mFilePath As String = String.Empty
+	Private mInputFilePath As String
 	Private mVersionInfoFilePath As String = String.Empty
+	Private mGenericDLL As Boolean = False
+
+	Private mOutputFolderNameOrPath As String
+	Private mParameterFilePath As String			' Not used by this program
+
+	Private mOutputFolderAlternatePath As String				' Not used by this program
+	Private mRecreateFolderHierarchyInAlternatePath As Boolean	' Not used by this program
+
+	Private mRecurseFolders As Boolean
+	Private mRecurseFoldersMaxLevels As Integer
+	Private mLogMessagesToFile As Boolean
+	Private mQuietMode As Boolean
+
+	Private mShowResultsAtConsole As Boolean = False
+
+	Private WithEvents mDLLVersionInspector As clsDLLVersionInspector
+	Private mLastProgressReportTime As System.DateTime
+	Private mLastProgressReportValue As Integer
 
 	Public Function Main() As Integer
 		' Returns 0 if no error, error code if an error
@@ -26,7 +44,23 @@ Module modMain
 		Dim objParseCommandLine As New clsParseCommandLine
 		Dim blnProceed As Boolean
 
+
 		intReturnCode = 0
+
+		mOutputFolderNameOrPath = String.Empty
+		mParameterFilePath = String.Empty
+
+		mOutputFolderAlternatePath = String.Empty
+		mRecreateFolderHierarchyInAlternatePath = False
+
+		mRecurseFolders = False
+		mRecurseFoldersMaxLevels = 0
+
+		mLogMessagesToFile = False
+		mQuietMode = False
+
+		mShowResultsAtConsole = False
+
 
 		Try
 			blnProceed = False
@@ -37,23 +71,68 @@ Module modMain
 
 			If Not blnProceed OrElse _
 			   objParseCommandLine.NeedToShowHelp OrElse _
-			   objParseCommandLine.ParameterCount + objParseCommandLine.NonSwitchParameterCount = 0 Then
+			   objParseCommandLine.ParameterCount + objParseCommandLine.NonSwitchParameterCount = 0 OrElse _
+			   String.IsNullOrWhiteSpace(mInputFilePath) Then
 				ShowProgramHelp()
 				intReturnCode = -1
 			Else
 
-				If Not String.IsNullOrWhiteSpace(mFilePath) Then
-					Dim blnSuccess As Boolean
-					blnSuccess = DetermineVersion(mFilePath, mVersionInfoFilePath)
+				mDLLVersionInspector = New clsDLLVersionInspector
 
-					If Not blnSuccess Then
-						intReturnCode = 99
+				Dim strVersionInfoFileName As String = String.Empty
+				If Not String.IsNullOrWhiteSpace(mVersionInfoFilePath) Then
+					Dim fiVersionInfoFile As System.IO.FileInfo
+					fiVersionInfoFile = New System.IO.FileInfo(mVersionInfoFilePath)
+
+					strVersionInfoFileName = fiVersionInfoFile.Name
+					mOutputFolderNameOrPath = fiVersionInfoFile.Directory.FullName
+
+					If mRecurseFolders AndAlso fiVersionInfoFile.Exists Then
+						' Delete the existing version info file because we will be appending to it
+						fiVersionInfoFile.Delete()
+					End If				
+				End If
+
+				' Note: the following settings will be overridden if mParameterFilePath points to a valid parameter file that has these settings defined
+				With mDLLVersionInspector
+					.ShowMessages = True
+					.LogMessagesToFile = False
+
+					If mRecurseFolders AndAlso Not String.IsNullOrWhiteSpace(mOutputFolderNameOrPath) Then
+						.AppendToVersionInfoFile = True
+					Else
+						.AppendToVersionInfoFile = False
 					End If
 
+					.GenericDLL = mGenericDLL
+
+					.ShowResultsAtConsole = mShowResultsAtConsole
+					.ShowFolderNamesWhenRecursing = False
+
+					.VersionInfoFileName = strVersionInfoFileName
+
+					.IgnoreErrorsWhenUsingWildcardMatching = True
+				End With
+
+				If mRecurseFolders Then
+
+					If mDLLVersionInspector.ProcessFilesAndRecurseFolders(mInputFilePath, mOutputFolderNameOrPath, mOutputFolderAlternatePath, mRecreateFolderHierarchyInAlternatePath, mParameterFilePath, mRecurseFoldersMaxLevels) Then
+						intReturnCode = 0
+					Else
+						intReturnCode = mDLLVersionInspector.ErrorCode
+					End If
 				Else
-					ShowProgramHelp()
-					intReturnCode = -1
+					If mDLLVersionInspector.ProcessFilesWildcard(mInputFilePath, mOutputFolderNameOrPath, mParameterFilePath) Then
+						intReturnCode = 0
+					Else
+						intReturnCode = mDLLVersionInspector.ErrorCode
+						If intReturnCode <> 0 AndAlso Not mQuietMode Then
+							Console.WriteLine("Error while processing: " & mDLLVersionInspector.GetErrorMessage())
+						End If
+					End If
 				End If
+
+				DisplayProgressPercent(mLastProgressReportValue, True)
 
 			End If
 
@@ -66,44 +145,16 @@ Module modMain
 
 	End Function
 
-	Private Function DetermineVersion(ByVal strFilePath As String, ByVal strVersionInfoFilePath As String) As Boolean
-
-		Dim ioFileInfo As System.IO.FileInfo
-		Dim strToolVersionInfo As String = String.Empty
-		Dim blnSuccess As Boolean = False
-
-		Try
-			ioFileInfo = New System.IO.FileInfo(strFilePath)
-
-			If Not ioFileInfo.Exists Then
-				Dim strErrorMessage As String = "Error: File not found: " & strFilePath
-				ShowErrorMessage(strErrorMessage)
-				SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo, strErrorMessage)
-				blnSuccess = False
-			Else
-
-				Dim oAssemblyName As System.Reflection.AssemblyName
-				oAssemblyName = System.Reflection.Assembly.LoadFrom(ioFileInfo.FullName).GetName
-
-				strToolVersionInfo = oAssemblyName.Name & ", Version=" & oAssemblyName.Version.ToString()
-
-				blnSuccess = SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo)
-			End If
-
-		Catch ex As Exception
-			' If you get an exception regarding .NET 4.0 not being able to read a .NET 1.0 runtime, then add these lines to the end of file AnalysisManagerProg.exe.config
-			'  <startup useLegacyV2RuntimeActivationPolicy="true">
-			'    <supportedRuntime version="v4.0" />
-			'  </startup>
-			Dim strErrorMessage As String = "Exception determining Assembly info for " & System.IO.Path.GetFileName(strFilePath) & ": " & ex.Message
-			ShowErrorMessage(strErrorMessage)
-			SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo, strErrorMessage)
-			blnSuccess = False
-		End Try
-
-		Return blnSuccess
-
-	End Function
+	Private Sub DisplayProgressPercent(ByVal intPercentComplete As Integer, ByVal blnAddCarriageReturn As Boolean)
+		If blnAddCarriageReturn Then
+			Console.WriteLine()
+		End If
+		If intPercentComplete > 100 Then intPercentComplete = 100
+		Console.Write("Processing: " & intPercentComplete.ToString & "% ")
+		If blnAddCarriageReturn Then
+			Console.WriteLine()
+		End If
+	End Sub
 
 	Private Function GetAppVersion() As String
 		Return System.Reflection.Assembly.GetExecutingAssembly.GetName.Version.ToString & " (" & PROGRAM_DATE & ")"
@@ -113,59 +164,11 @@ Module modMain
 		Return System.Reflection.Assembly.GetExecutingAssembly().Location
 	End Function
 
-	Private Function SaveVersionInfo(ByVal strFilePath As String, ByVal strVersionInfoFilePath As String, ByVal strToolVersionInfo As String) As Boolean
-		Return SaveVersionInfo(strFilePath, strVersionInfoFilePath, strToolVersionInfo, String.Empty)
-	End Function
-
-	Private Function SaveVersionInfo(ByVal strFilePath As String, ByVal strVersionInfoFilePath As String, ByVal strToolVersionInfo As String, ByVal strErrorMessage As String) As Boolean
-
-		Dim ioFileInfo As System.IO.FileInfo
-		Dim srOutFile As System.IO.StreamWriter
-		Dim blnSuccess As Boolean = False
-
-		Try
-			If String.IsNullOrWhiteSpace(strVersionInfoFilePath) Then
-				' Auto-define the output file path
-				Dim ioAppFileInfo As System.IO.FileInfo = New System.IO.FileInfo(GetAppPath())
-
-				strVersionInfoFilePath = System.IO.Path.Combine(ioAppFileInfo.DirectoryName, System.IO.Path.GetFileNameWithoutExtension(strFilePath) & "_VersionInfo.txt")
-			End If
-
-			srOutFile = New System.IO.StreamWriter(New System.IO.FileStream(strVersionInfoFilePath, IO.FileMode.Create, IO.FileAccess.Write, IO.FileShare.Read))
-
-			ioFileInfo = New System.IO.FileInfo(strFilePath)
-
-			If ioFileInfo.Exists Then
-				srOutFile.WriteLine("FileName=" & ioFileInfo.Name)
-				srOutFile.WriteLine("Path=" & ioFileInfo.FullName)
-			Else
-				srOutFile.WriteLine("FileName=" & System.IO.Path.GetFileName(strFilePath))
-				srOutFile.WriteLine("Path=" & strFilePath)
-			End If
-
-			srOutFile.WriteLine("Version=" & strToolVersionInfo)
-
-			If Not String.IsNullOrWhiteSpace(strErrorMessage) Then
-				srOutFile.WriteLine("Error=" & strErrorMessage)
-			End If
-
-			srOutFile.Close()
-
-			blnSuccess = True
-		Catch ex As Exception
-			ShowErrorMessage("Exception writing the version info to the output file at " & strVersionInfoFilePath & ": " & ex.Message)
-			blnSuccess = False
-		End Try
-
-		Return blnSuccess
-
-	End Function
-
 	Private Function SetOptionsUsingCommandLineParameters(ByVal objParseCommandLine As clsParseCommandLine) As Boolean
 		' Returns True if no problems; otherwise, returns false
 
 		Dim strValue As String = String.Empty
-		Dim strValidParameters() As String = New String() {"I", "O"}
+		Dim strValidParameters() As String = New String() {"I", "O", "G", "S", "C"}
 
 		Try
 			' Make sure no invalid parameters are present
@@ -176,15 +179,30 @@ Module modMain
 					' Query objParseCommandLine to see if various parameters are present
 
 					If .NonSwitchParameterCount > 0 Then
-						mFilePath = .RetrieveNonSwitchParameter(0)
+						mInputFilePath = .RetrieveNonSwitchParameter(0)
 					End If
 
 					If .RetrieveValueForParameter("I", strValue) Then
-						mFilePath = String.Copy(strValue)
+						mInputFilePath = String.Copy(strValue)
 					End If
 
 					If .RetrieveValueForParameter("O", strValue) Then
 						mVersionInfoFilePath = String.Copy(strValue)
+					End If
+
+					If .RetrieveValueForParameter("G", strValue) Then
+						mGenericDLL = True
+					End If
+
+					If .RetrieveValueForParameter("S", strValue) Then
+						mRecurseFolders = True
+						If Not Integer.TryParse(strValue, mRecurseFoldersMaxLevels) Then
+							mRecurseFoldersMaxLevels = 0
+						End If
+					End If
+
+					If .RetrieveValueForParameter("C", strValue) Then
+						mShowResultsAtConsole = True
 					End If
 
 				End With
@@ -200,42 +218,74 @@ Module modMain
 
 	End Function
 
-	Private Sub ShowErrorMessage(strErrorMessage As String)
+	Private Sub ShowErrorMessage(ByVal strMessage As String)
+		Dim strSeparator As String = "------------------------------------------------------------------------------"
+
 		Console.WriteLine()
-		Console.WriteLine("=====================================================================")
-		Console.WriteLine(strErrorMessage)
-		Console.WriteLine("=====================================================================")
+		Console.WriteLine(strSeparator)
+		Console.WriteLine(strMessage)
+		Console.WriteLine(strSeparator)
+		Console.WriteLine()
+
 	End Sub
 
-    Private Sub ShowProgramHelp()
+	Private Sub ShowProgramHelp()
 
-        Try
+		Try
 
 			Console.WriteLine("This program inspects a .NET DLL or .Exe to determine the version.  This allows a 32-bit .NET application to call this program via the command prompt to determine the version of a 64-bit DLL or Exe.")
-            Console.WriteLine()
-            Console.WriteLine("Program syntax:" & Environment.NewLine & System.IO.Path.GetFileName(GetAppPath()))
-			Console.WriteLine(" FilePath [/O:VersionInfoFilePath]")
-            Console.WriteLine()
+			Console.WriteLine("The program will create a VersionInfo file with the details about the DLL.")
+			Console.WriteLine("Alternatively, you can search for all occurrences of a given DLL in a folder and its subdirectories (use switch /S).  In this mode, the DLL version will be displayed at the console.")
+			Console.WriteLine()
+			Console.WriteLine("Program syntax:" & Environment.NewLine & System.IO.Path.GetFileName(GetAppPath()))
+			Console.WriteLine(" FilePath [/O:VersionInfoFilePath] [/G] [/C] [/S]")
+			Console.WriteLine()
 			Console.WriteLine("FilePath is the path to the .NET DLL or .NET Exe to inspect")
-			Console.WriteLine("Use /O:VersionInfoFilePath to specify the path to the file to which this program should write the version info")
+			Console.WriteLine("Use /O:VersionInfoFilePath to specify the path to the file to which this program should write the version info. If using /S, then use /O to specify the filename that will be created in the folder for which each DLL is found")
+			Console.WriteLine()
+			Console.WriteLine("Use /G to indicate that the DLL is a generic Windows DLL, and not a .NET DLL")
+			Console.WriteLine("Use /C to display the version info in the console output instead of creating a VersionInfo file")
+			Console.WriteLine("Use /S to search for all instances of the DLL in a folder and its subfolders (wildcards are allowed)")
 			Console.WriteLine()
 
-            Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA) in 2011")
-            Console.WriteLine("Version: " & GetAppVersion())
-            Console.WriteLine()
+			Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA) in 2011")
+			Console.WriteLine("Version: " & GetAppVersion())
+			Console.WriteLine()
 
-            Console.WriteLine("E-mail: matthew.monroe@pnl.gov or matt@alchemistmatt.com")
-            Console.WriteLine("Website: http://omics.pnl.gov/ or http://www.sysbio.org/resources/staff/")
-            Console.WriteLine()
+			Console.WriteLine("E-mail: matthew.monroe@pnl.gov or matt@alchemistmatt.com")
+			Console.WriteLine("Website: http://omics.pnl.gov/ or http://www.sysbio.org/resources/staff/")
+			Console.WriteLine()
 
-            ' Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
-            System.Threading.Thread.Sleep(750)
+			' Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
+			System.Threading.Thread.Sleep(750)
 
-        Catch ex As Exception
+		Catch ex As Exception
 			ShowErrorMessage("Error displaying the program syntax: " & ex.Message)
-        End Try
+		End Try
 
-    End Sub
+	End Sub
 
- 
+	Private Sub mDLLVersionInspector_ProgressChanged(ByVal taskDescription As String, ByVal percentComplete As Single) Handles mDLLVersionInspector.ProgressChanged
+		Const PERCENT_REPORT_INTERVAL As Integer = 25
+		Const PROGRESS_DOT_INTERVAL_MSEC As Integer = 250
+
+		If percentComplete >= mLastProgressReportValue Then
+			If mLastProgressReportValue > 0 Then
+				Console.WriteLine()
+			End If
+			DisplayProgressPercent(mLastProgressReportValue, False)
+			mLastProgressReportValue += PERCENT_REPORT_INTERVAL
+			mLastProgressReportTime = DateTime.UtcNow
+		Else
+			If DateTime.UtcNow.Subtract(mLastProgressReportTime).TotalMilliseconds > PROGRESS_DOT_INTERVAL_MSEC Then
+				mLastProgressReportTime = DateTime.UtcNow
+				Console.Write(".")
+			End If
+		End If
+	End Sub
+
+	Private Sub mDLLVersionInspector_ProgressReset() Handles mDLLVersionInspector.ProgressReset
+		mLastProgressReportTime = DateTime.UtcNow
+		mLastProgressReportValue = 0
+	End Sub
 End Module

@@ -83,9 +83,13 @@
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
     <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="clsParseCommandLine.vb" />
+    <Compile Include="clsProcessFilesBaseClass.vb" />
+    <Compile Include="clsDLLVersionInspector.vb" />
+    <Compile Include="clsXmlSettingsFileAccessor.vb" />
     <Compile Include="modMain.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
   </ItemGroup>
