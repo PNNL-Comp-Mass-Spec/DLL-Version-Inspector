@@ -11,7 +11,7 @@ Option Strict On
 Public MustInherit Class clsProcessFilesBaseClass
 
 	Public Sub New()
-		mFileDate = "June 14, 2013"
+		mFileDate = "June 28, 2013"
 		mErrorCode = eProcessFilesErrorCodes.NoError
 		mProgressStepDescription = String.Empty
 
@@ -55,8 +55,6 @@ Public MustInherit Class clsProcessFilesBaseClass
 	''End Property
 
 	Private mShowMessages As Boolean = True
-	Private mShowFolderNamesWhenRecursing As Boolean = True
-
 	Private mErrorCode As eProcessFilesErrorCodes
 
 	Protected mFileDate As String
@@ -169,15 +167,6 @@ Public MustInherit Class clsProcessFilesBaseClass
 		Get
 			Return CType(Math.Round(mProgressPercentComplete, 2), Single)
 		End Get
-	End Property
-
-	Public Property ShowFolderNamesWhenRecursing() As Boolean
-		Get
-			Return mShowFolderNamesWhenRecursing
-		End Get
-		Set(value As Boolean)
-			mShowFolderNamesWhenRecursing = value
-		End Set
 	End Property
 
 	Public Property ShowMessages() As Boolean
@@ -533,7 +522,7 @@ Public MustInherit Class clsProcessFilesBaseClass
 				Try
 					If mLogFolderPath Is Nothing Then mLogFolderPath = String.Empty
 
-					If mLogFolderPath.Length = 0 Then
+					If String.IsNullOrWhiteSpace(mLogFolderPath) Then
 						' Log folder is undefined; use mOutputFolderPath if it is defined
 						If Not mOutputFolderPath Is Nothing AndAlso mOutputFolderPath.Length > 0 Then
 							mLogFolderPath = String.Copy(mOutputFolderPath)
@@ -929,10 +918,7 @@ Public MustInherit Class clsProcessFilesBaseClass
 				mOutputFolderPath = String.Copy(strOutputFolderPathToUse)
 			End If
 
-			If mShowFolderNamesWhenRecursing Then
-				ShowMessage("Examining " & strInputFolderPath)
-			End If
-
+			ShowMessage("Examining " & strInputFolderPath)
 
 			' Process any matching files in this folder
 			blnSuccess = True
@@ -954,9 +940,6 @@ Public MustInherit Class clsProcessFilesBaseClass
 
 				Next intExtensionIndex
 			Next ioFileMatch
-		Catch ex As UnauthorizedAccessException
-			ShowMessage("Access denied: " & ioInputFolderInfo.FullName)
-			Return False
 		Catch ex As Exception
 			HandleException("Error in RecurseFoldersWork", ex)
 			mErrorCode = eProcessFilesErrorCodes.InvalidInputFilePath
@@ -975,11 +958,7 @@ Public MustInherit Class clsProcessFilesBaseClass
 					  intFileProcessCount, intFileProcessFailCount, _
 					  intRecursionLevel + 1, intRecurseFoldersMaxLevels)
 
-					If mAbortProcessing Then
-						Exit For
-					ElseIf Not blnSuccess AndAlso Not mIgnoreErrorsWhenUsingWildcardMatching Then
-						Exit For
-					End If
+					If Not blnSuccess Then Exit For
 				Next ioSubFolderInfo
 			End If
 		End If
