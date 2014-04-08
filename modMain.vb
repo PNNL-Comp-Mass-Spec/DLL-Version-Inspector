@@ -14,7 +14,7 @@ Option Strict On
 ' 
 
 Module modMain
-	Public Const PROGRAM_DATE As String = "June 14, 2013"
+	Public Const PROGRAM_DATE As String = "April 7, 2014"
 
 	Private mInputFilePath As String
 	Private mVersionInfoFilePath As String = String.Empty
@@ -107,7 +107,6 @@ Module modMain
 					.GenericDLL = mGenericDLL
 
 					.ShowResultsAtConsole = mShowResultsAtConsole
-					.ShowFolderNamesWhenRecursing = False
 
 					.VersionInfoFileName = strVersionInfoFileName
 
