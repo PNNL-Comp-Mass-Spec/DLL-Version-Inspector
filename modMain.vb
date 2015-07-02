@@ -8,8 +8,8 @@ Option Strict On
 ' Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
 ' Program started in April 2011
 '
-' E-mail: matthew.monroe@pnl.gov or matt@alchemistmatt.com
-' Website: http://ncrr.pnl.gov/ or http://omics.pnl.gov or http://www.sysbio.org/resources/staff/
+' E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com
+' Website: http://omics.pnl.gov/ or http://www.sysbio.org/resources/staff/ or http://panomics.pnnl.gov/
 ' -------------------------------------------------------------------------------
 ' 
 
@@ -251,8 +251,8 @@ Module modMain
 			Console.WriteLine("Version: " & GetAppVersion())
 			Console.WriteLine()
 
-			Console.WriteLine("E-mail: matthew.monroe@pnl.gov or matt@alchemistmatt.com")
-			Console.WriteLine("Website: http://omics.pnl.gov/ or http://www.sysbio.org/resources/staff/")
+			Console.WriteLine("E-mail: matthew.monroe@pnnl.gov or matt@alchemistmatt.com")
+			Console.WriteLine("Website: http://omics.pnl.gov/ or http://panomics.pnnl.gov/")
 			Console.WriteLine()
 
 			' Delay for 750 msec in case the user double clicked this file from within Windows Explorer (or started the program via a shortcut)
