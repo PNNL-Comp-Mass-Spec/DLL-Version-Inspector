@@ -1,4 +1,11 @@
 DLLVersionInspector Change Log
 
+Version 1.0.5660; July 1, 2015
+	- Updated contact info
+
+Version 1.0.4913; June 14, 2013
+	- Added ability to search for DLLs in subfolders
+	- Added command line switches /G /C /S
+
 Version 1.0.4329; November 8, 2011
 	- Initial Release

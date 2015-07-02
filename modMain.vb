@@ -14,7 +14,7 @@ Option Strict On
 ' 
 
 Module modMain
-	Public Const PROGRAM_DATE As String = "April 7, 2014"
+    Public Const PROGRAM_DATE As String = "July 1, 2015"
 
 	Private mInputFilePath As String
 	Private mVersionInfoFilePath As String = String.Empty
