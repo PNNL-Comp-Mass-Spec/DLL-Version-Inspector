@@ -14,7 +14,7 @@ Option Strict On
 ' 
 
 Module modMain
-    Public Const PROGRAM_DATE As String = "July 1, 2015"
+    Public Const PROGRAM_DATE As String = "July 22, 2015"
 
 	Private mInputFilePath As String
 	Private mVersionInfoFilePath As String = String.Empty
@@ -147,12 +147,17 @@ Module modMain
 	Private Sub DisplayProgressPercent(ByVal intPercentComplete As Integer, ByVal blnAddCarriageReturn As Boolean)
 		If blnAddCarriageReturn Then
 			Console.WriteLine()
-		End If
-		If intPercentComplete > 100 Then intPercentComplete = 100
-		Console.Write("Processing: " & intPercentComplete.ToString & "% ")
-		If blnAddCarriageReturn Then
-			Console.WriteLine()
-		End If
+        End If
+
+        ' Note: Display of % complete is disabled for this program because it is extremely simple
+        Return
+
+        'If intPercentComplete > 100 Then intPercentComplete = 100
+        'Console.Write("Processing: " & intPercentComplete.ToString & "% ")
+        'If blnAddCarriageReturn Then
+        '	Console.WriteLine()
+        'End If
+
 	End Sub
 
 	Private Function GetAppVersion() As String
