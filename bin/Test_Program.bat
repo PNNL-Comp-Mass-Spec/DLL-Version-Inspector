@@ -1,11 +1,15 @@
 @echo off
 
-x86\DLLVersionInspector_x86.exe 32bit_Dll_Examples\ProteinCoverageSummarizer.dll
-type 32bit_Dll_Examples\ProteinCoverageSummarizer_VersionInfo.txt
+cls
 
+call RunSingleTest.bat x86 32bit_Dll_Examples UIMFLibrary
+call RunSingleTest.bat x86 64bit_Dll_Examples UIMFLibrary
+call RunSingleTest.bat x86 AnyCPU_DLL_Examples UIMFLibrary
+pause
+cls
 
-x64\DLLVersionInspector_x64.exe 64bit_Dll_Examples\ProteinCoverageSummarizer.dll
-type 64bit_Dll_Examples\ProteinCoverageSummarizer_VersionInfo.txt
-
+call RunSingleTest.bat x64 32bit_Dll_Examples UIMFLibrary
+call RunSingleTest.bat x64 64bit_Dll_Examples UIMFLibrary
+call RunSingleTest.bat x64 AnyCPU_DLL_Examples UIMFLibrary
 
 
