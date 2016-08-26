@@ -1,0 +1,3 @@
+FileName=ThermoRawFileReaderDLL.dll
+Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\AnyCPU_DLL_Examples\ThermoRawFileReaderDLL.dll
+Version=ThermoRawFileReaderDLL, Version=1.1.5669.26095
