@@ -1,5 +1,6 @@
 Option Strict On
 
+Imports PRISM
 ' This class will determine the version of a .NET DLL or a generic Windows DLL
 '
 ' Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
@@ -7,7 +8,7 @@ Option Strict On
 ' Started June 14, 2013
 
 Public Class clsDLLVersionInspector
-    Inherits clsProcessFilesBaseClass
+    Inherits PRISM.FileProcessor.ProcessFilesBase
 
     Public Sub New()
         MyBase.mFileDate = "June 14, 2013"
@@ -199,13 +200,13 @@ Public Class clsDLLVersionInspector
 
     End Function
 
-    Public Overrides Function GetDefaultExtensionsToParse() As String()
-        Dim strExtensionsToParse(1) As String
+    Public Overrides Function GetDefaultExtensionsToParse() As IList(Of String)
+        Dim extensionsToParse = New List(Of String) From {
+                ".dll",
+                ".exe"
+                }
 
-        strExtensionsToParse(0) = ".dll"
-        strExtensionsToParse(1) = ".exe"
-
-        Return strExtensionsToParse
+        Return extensionsToParse
 
     End Function
 
@@ -218,8 +219,8 @@ Public Class clsDLLVersionInspector
 
         Dim strErrorMessage As String
 
-        If MyBase.ErrorCode = clsProcessFilesBaseClass.eProcessFilesErrorCodes.LocalizedError Or
-           MyBase.ErrorCode = clsProcessFilesBaseClass.eProcessFilesErrorCodes.NoError Then
+        If MyBase.ErrorCode = eProcessFilesErrorCodes.LocalizedError Or
+           MyBase.ErrorCode = eProcessFilesErrorCodes.NoError Then
             Select Case mLocalErrorCode
                 Case eDLLVersionInspectorErrorCodes.NoError
                     strErrorMessage = ""
@@ -263,7 +264,7 @@ Public Class clsDLLVersionInspector
                 ' See if strParameterFilePath points to a file in the same directory as the application
                 strParameterFilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), System.IO.Path.GetFileName(strParameterFilePath))
                 If Not System.IO.File.Exists(strParameterFilePath) Then
-                    MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.ParameterFileNotFound)
+                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.ParameterFileNotFound)
                     Return False
                 End If
             End If
@@ -271,7 +272,7 @@ Public Class clsDLLVersionInspector
             If objSettingsFile.LoadSettings(strParameterFilePath) Then
                 If Not objSettingsFile.SectionPresent(XML_SECTION_OPTIONS) Then
                     ShowErrorMessage("The node '<section name=""" & XML_SECTION_OPTIONS & """> was not found in the parameter file: " & strParameterFilePath)
-                    MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.InvalidParameterFile)
+                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidParameterFile)
                     Return False
                 Else
                     Me.GenericDLL = objSettingsFile.GetParam(XML_SECTION_OPTIONS, "GenericDLL", Me.GenericDLL)
@@ -311,8 +312,8 @@ Public Class clsDLLVersionInspector
         If Not LoadParameterFileSettings(strParameterFilePath) Then
             ShowErrorMessage("Parameter file load error: " & strParameterFilePath)
 
-            If MyBase.ErrorCode = clsProcessFilesBaseClass.eProcessFilesErrorCodes.NoError Then
-                MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.InvalidParameterFile)
+            If MyBase.ErrorCode = eProcessFilesErrorCodes.NoError Then
+                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidParameterFile)
             End If
             Return False
         End If
@@ -320,7 +321,7 @@ Public Class clsDLLVersionInspector
         Try
             If strInputFilePath Is Nothing OrElse strInputFilePath.Length = 0 Then
                 ShowMessage("Input file name is empty")
-                MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.InvalidInputFilePath)
+                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidInputFilePath)
             Else
 
                 Console.WriteLine()
@@ -328,7 +329,7 @@ Public Class clsDLLVersionInspector
 
                 ' Note that CleanupFilePaths() will update mOutputFolderPath, which is used by LogMessage()
                 If Not CleanupFilePaths(strInputFilePath, strOutputFolderPath) Then
-                    MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.FilePathError)
+                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.FilePathError)
                 Else
 
                     MyBase.ResetProgress()
@@ -460,11 +461,11 @@ Public Class clsDLLVersionInspector
             mLocalErrorCode = eNewErrorCode
 
             If eNewErrorCode = eDLLVersionInspectorErrorCodes.NoError Then
-                If MyBase.ErrorCode = clsProcessFilesBaseClass.eProcessFilesErrorCodes.LocalizedError Then
-                    MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.NoError)
+                If MyBase.ErrorCode = eProcessFilesErrorCodes.LocalizedError Then
+                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.NoError)
                 End If
             Else
-                MyBase.SetBaseClassErrorCode(clsProcessFilesBaseClass.eProcessFilesErrorCodes.LocalizedError)
+                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.LocalizedError)
             End If
         End If
 

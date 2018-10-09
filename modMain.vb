@@ -1,5 +1,6 @@
 Option Strict On
 
+Imports PRISM
 ' This program inspects a .NET DLL or .Exe to determine the version.
 ' This allows a 32-bit .NET application to call this program via the
 ' command prompt to determine the version of a 64-bit DLL or Exe.
@@ -41,7 +42,7 @@ Module modMain
         ' Returns 0 if no error, error code if an error
 
         Dim intReturnCode As Integer
-        Dim objParseCommandLine As New clsParseCommandLine
+        Dim commandLineParser As New clsParseCommandLine
         Dim blnProceed As Boolean
 
 
@@ -65,13 +66,13 @@ Module modMain
         Try
             blnProceed = False
 
-            If objParseCommandLine.ParseCommandLine Then
-                If SetOptionsUsingCommandLineParameters(objParseCommandLine) Then blnProceed = True
+            If commandLineParser.ParseCommandLine Then
+                If SetOptionsUsingCommandLineParameters(commandLineParser) Then blnProceed = True
             End If
 
             If Not blnProceed OrElse
-               objParseCommandLine.NeedToShowHelp OrElse
-               objParseCommandLine.ParameterCount + objParseCommandLine.NonSwitchParameterCount = 0 OrElse
+               commandLineParser.NeedToShowHelp OrElse
+               commandLineParser.ParameterCount + commandLineParser.NonSwitchParameterCount = 0 OrElse
                String.IsNullOrWhiteSpace(mInputFilePath) Then
                 ShowProgramHelp()
                 intReturnCode = -1
@@ -168,7 +169,7 @@ Module modMain
         Return System.Reflection.Assembly.GetExecutingAssembly().Location
     End Function
 
-    Private Function SetOptionsUsingCommandLineParameters(ByVal objParseCommandLine As clsParseCommandLine) As Boolean
+    Private Function SetOptionsUsingCommandLineParameters(ByVal commandLineParser As clsParseCommandLine) As Boolean
         ' Returns True if no problems; otherwise, returns false
 
         Dim strValue As String = String.Empty
@@ -176,11 +177,11 @@ Module modMain
 
         Try
             ' Make sure no invalid parameters are present
-            If objParseCommandLine.InvalidParametersPresent(strValidParameters) Then
+            If commandLineParser.InvalidParametersPresent(strValidParameters) Then
                 Return False
             Else
-                With objParseCommandLine
-                    ' Query objParseCommandLine to see if various parameters are present
+                With commandLineParser
+                    ' Query commandLineParser to see if various parameters are present
 
                     If .NonSwitchParameterCount > 0 Then
                         mInputFilePath = .RetrieveNonSwitchParameter(0)
@@ -269,7 +270,7 @@ Module modMain
 
     End Sub
 
-    Private Sub mDLLVersionInspector_ProgressChanged(ByVal taskDescription As String, ByVal percentComplete As Single) Handles mDLLVersionInspector.ProgressChanged
+    Private Sub mDLLVersionInspector_ProgressChanged(ByVal taskDescription As String, ByVal percentComplete As Single) Handles mDLLVersionInspector.ProgressUpdate
         Const PERCENT_REPORT_INTERVAL As Integer = 25
         Const PROGRESS_DOT_INTERVAL_MSEC As Integer = 250
 
