@@ -24,14 +24,14 @@ Module modMain
     Private mVersionInfoFilePath As String = String.Empty
     Private mGenericDLL As Boolean = False
 
-    Private mOutputFolderNameOrPath As String
+    Private mOutputDirectoryPath As String
     Private mParameterFilePath As String            ' Not used by this program
 
-    Private mOutputFolderAlternatePath As String                ' Not used by this program
-    Private mRecreateFolderHierarchyInAlternatePath As Boolean  ' Not used by this program
+    Private mOutputDirectoryAlternatePath As String                 ' Not used by this program
+    Private mmRecreateDirectoryHierarchyInAlternatePath As Boolean  ' Not used by this program
 
-    Private mRecurseFolders As Boolean
-    Private mRecurseFoldersMaxLevels As Integer
+    Private mRecurseDirectories As Boolean
+    Private mMaxLevelsToRecurse As Integer
 
     Private mShowResultsAtConsole As Boolean = False
 
@@ -48,14 +48,14 @@ Module modMain
         Dim commandLineParser As New clsParseCommandLine
         Dim proceed As Boolean
 
-        mOutputFolderNameOrPath = String.Empty
+        mOutputDirectoryPath = String.Empty
         mParameterFilePath = String.Empty
 
-        mOutputFolderAlternatePath = String.Empty
-        mRecreateFolderHierarchyInAlternatePath = False
+        mOutputDirectoryAlternatePath = String.Empty
+        mmRecreateDirectoryHierarchyInAlternatePath = False
 
-        mRecurseFolders = False
-        mRecurseFoldersMaxLevels = 0
+        mRecurseDirectories = False
+        mMaxLevelsToRecurse = 0
 
         mShowResultsAtConsole = False
 
@@ -79,9 +79,9 @@ Module modMain
                     Dim versionInfoFile = New FileInfo(mVersionInfoFilePath)
 
                     versionInfoFileName = versionInfoFile.Name
-                    mOutputFolderNameOrPath = versionInfoFile.Directory.FullName
+                    mOutputDirectoryPath = versionInfoFile.Directory.FullName
 
-                    If mRecurseFolders AndAlso versionInfoFile.Exists Then
+                    If mRecurseDirectories AndAlso versionInfoFile.Exists Then
                         ' Delete the existing version info file because we will be appending to it
                         versionInfoFile.Delete()
                     End If
@@ -100,19 +100,22 @@ Module modMain
                 AddHandler dllVersionInspector.ProgressUpdate, AddressOf DLLVersionInspector_ProgressUpdate
                 AddHandler dllVersionInspector.ProgressReset, AddressOf DLLVersionInspector_ProgressReset
 
-                If mRecurseFolders AndAlso Not String.IsNullOrWhiteSpace(mOutputFolderNameOrPath) Then
+                If mRecurseDirectories AndAlso Not String.IsNullOrWhiteSpace(mOutputDirectoryPath) Then
                     dllVersionInspector.AppendToVersionInfoFile = True
                 End If
 
-                If mRecurseFolders Then
+                If mRecurseDirectories Then
+                    dllVersionInspector.SkipConsoleWriteIfNoDebugListener = True
 
-                    If dllVersionInspector.ProcessFilesAndRecurseFolders(mInputFilePath, mOutputFolderNameOrPath, mOutputFolderAlternatePath, mRecreateFolderHierarchyInAlternatePath, mParameterFilePath, mRecurseFoldersMaxLevels) Then
+                    If dllVersionInspector.ProcessFilesAndRecurseDirectories(mInputFilePath, mOutputDirectoryPath, mOutputDirectoryAlternatePath,
+                                                                             mmRecreateDirectoryHierarchyInAlternatePath, mParameterFilePath,
+                                                                             mMaxLevelsToRecurse) Then
                         returnCode = 0
                     Else
                         returnCode = dllVersionInspector.ErrorCode
                     End If
                 Else
-                    If dllVersionInspector.ProcessFilesWildcard(mInputFilePath, mOutputFolderNameOrPath, mParameterFilePath) Then
+                    If dllVersionInspector.ProcessFilesWildcard(mInputFilePath, mOutputDirectoryPath, mParameterFilePath) Then
                         returnCode = 0
                     Else
                         returnCode = dllVersionInspector.ErrorCode
@@ -152,11 +155,11 @@ Module modMain
     End Sub
 
     Private Function GetAppVersion() As String
-        Return PRISM.FileProcessor.ProcessFoldersBase.GetAppVersion(PROGRAM_DATE)
+        Return FileProcessor.ProcessFilesOrDirectoriesBase.GetAppVersion(PROGRAM_DATE)
     End Function
 
     Private Function GetAppPath() As String
-        Return PRISM.FileProcessor.ProcessFoldersBase.GetAppPath()
+        Return FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath()
     End Function
 
     Private Function SetOptionsUsingCommandLineParameters(commandLineParser As clsParseCommandLine) As Boolean
@@ -189,9 +192,9 @@ Module modMain
             mShowResultsAtConsole = commandLineParser.IsParameterPresent("C")
 
             If commandLineParser.RetrieveValueForParameter("S", value) Then
-                mRecurseFolders = True
-                If Not Integer.TryParse(value, mRecurseFoldersMaxLevels) Then
-                    mRecurseFoldersMaxLevels = 0
+                mRecurseDirectories = True
+                If Not Integer.TryParse(value, mMaxLevelsToRecurse) Then
+                    mMaxLevelsToRecurse = 0
                 End If
             End If
 
@@ -217,7 +220,7 @@ Module modMain
                 "This allows a 32-bit .NET application to call this program via the command prompt " &
                 "to determine the version of a 64-bit DLL or Exe. " &
                 "The program will create a VersionInfo file with the details about the DLL." &
-                "Alternatively, you can search for all occurrences of a given DLL in a folder and its subdirectories (use switch /S). " &
+                "Alternatively, you can search for all occurrences of a given DLL in a directory and its subdirectories (use switch /S). " &
                 "In this mode, the DLL version will be displayed at the console."))
             Console.WriteLine()
             Console.WriteLine("Program syntax: " & Path.GetFileName(GetAppPath()))
@@ -227,11 +230,13 @@ Module modMain
             Console.WriteLine()
             Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
                 "Use /O:VersionInfoFilePath to specify the path to the file to which this program should write the version info. " &
-                "If using /S, then use /O to specify the filename that will be created in the folder for which each DLL is found"))
+                "If using /S, then use /O to specify the filename that will be created in the directory for which each DLL is found"))
             Console.WriteLine()
             Console.WriteLine(ConsoleMsgUtils.WrapParagraph("Use /G to indicate that the DLL is a generic Windows DLL, and not a .NET DLL"))
+            Console.WriteLine()
             Console.WriteLine(ConsoleMsgUtils.WrapParagraph("Use /C to display the version info in the console output instead of creating a VersionInfo file"))
-            Console.WriteLine(ConsoleMsgUtils.WrapParagraph("Use /S to search for all instances of the DLL in a folder and its subfolders (wildcards are allowed)"))
+            Console.WriteLine()
+            Console.WriteLine(ConsoleMsgUtils.WrapParagraph("Use /S to search for all instances of the DLL in a directory and its subdirectories (wildcards are allowed)"))
             Console.WriteLine()
 
             Console.WriteLine("Program written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA) in 2011")

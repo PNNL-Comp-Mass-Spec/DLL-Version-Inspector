@@ -207,8 +207,8 @@ Public Class clsDLLVersionInspector
 
         Dim errorMessage As String
 
-        If ErrorCode = eProcessFilesErrorCodes.LocalizedError Or
-           ErrorCode = eProcessFilesErrorCodes.NoError Then
+        If ErrorCode = ProcessFilesErrorCodes.LocalizedError Or
+           ErrorCode = ProcessFilesErrorCodes.NoError Then
             Select Case mLocalErrorCode
                 Case eDLLVersionInspectorErrorCodes.NoError
                     errorMessage = ""
@@ -252,7 +252,7 @@ Public Class clsDLLVersionInspector
                 ' See if parameterFilePath points to a file in the same directory as the application
                 parameterFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.GetFileName(parameterFilePath))
                 If Not File.Exists(parameterFilePath) Then
-                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.ParameterFileNotFound)
+                    MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.ParameterFileNotFound)
                     Return False
                 End If
             End If
@@ -260,7 +260,7 @@ Public Class clsDLLVersionInspector
             If settingsFile.LoadSettings(parameterFilePath) Then
                 If Not settingsFile.SectionPresent(XML_SECTION_OPTIONS) Then
                     ShowErrorMessage("The node '<section name=""" & XML_SECTION_OPTIONS & """> was not found in the parameter file: " & parameterFilePath)
-                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidParameterFile)
+                    MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.InvalidParameterFile)
                     Return False
                 Else
                     Me.GenericDLL = settingsFile.GetParam(XML_SECTION_OPTIONS, "GenericDLL", Me.GenericDLL)
@@ -300,8 +300,8 @@ Public Class clsDLLVersionInspector
         If Not LoadParameterFileSettings(parameterFilePath) Then
             ShowErrorMessage("Parameter file load error: " & parameterFilePath)
 
-            If MyBase.ErrorCode = eProcessFilesErrorCodes.NoError Then
-                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidParameterFile)
+            If MyBase.ErrorCode = ProcessFilesErrorCodes.NoError Then
+                MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.InvalidParameterFile)
             End If
             Return False
         End If
@@ -309,16 +309,16 @@ Public Class clsDLLVersionInspector
         Try
             If inputFilePath Is Nothing OrElse inputFilePath.Length = 0 Then
                 ShowMessage("Input file name is empty")
-                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidInputFilePath)
+                MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.InvalidInputFilePath)
                 Return False
             End If
 
             Console.WriteLine()
             Console.WriteLine("Parsing " & Path.GetFileName(inputFilePath))
 
-            ' Note that CleanupFilePaths() will update mOutputFolderPath, which is used by LogMessage()
+            ' Note that CleanupFilePaths() will update mOutputDirectoryPath, which is used by LogMessage()
             If Not CleanupFilePaths(inputFilePath, outputDirectoryPath) Then
-                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.FilePathError)
+                MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.FilePathError)
                 Return False
             End If
 
@@ -451,11 +451,11 @@ Public Class clsDLLVersionInspector
             mLocalErrorCode = eNewErrorCode
 
             If eNewErrorCode = eDLLVersionInspectorErrorCodes.NoError Then
-                If MyBase.ErrorCode = eProcessFilesErrorCodes.LocalizedError Then
-                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.NoError)
+                If MyBase.ErrorCode = ProcessFilesErrorCodes.LocalizedError Then
+                    MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.NoError)
                 End If
             Else
-                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.LocalizedError)
+                MyBase.SetBaseClassErrorCode(ProcessFilesErrorCodes.LocalizedError)
             End If
         End If
 
