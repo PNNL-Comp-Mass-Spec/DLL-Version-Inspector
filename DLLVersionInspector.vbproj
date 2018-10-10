@@ -69,6 +69,7 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <WarningsAsErrors>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</WarningsAsErrors>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Team Tools\Static Analysis Tools\Rule Sets\MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DefineTrace>true</DefineTrace>
@@ -99,6 +100,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="clsDLLVersionInspector.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
     <Compile Include="modMain.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
   </ItemGroup>
