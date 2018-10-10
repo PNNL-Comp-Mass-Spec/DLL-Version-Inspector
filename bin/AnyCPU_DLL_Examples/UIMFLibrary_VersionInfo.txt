@@ -1,3 +1,3 @@
 FileName=UIMFLibrary.dll
-Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\AnyCPU_DLL_Examples\UIMFLibrary.dll
+Path=F:\Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\AnyCPU_DLL_Examples\UIMFLibrary.dll
 Version=UIMFLibrary, Version=3.0.5654.24060

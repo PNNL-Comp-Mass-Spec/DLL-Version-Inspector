@@ -1,4 +1,4 @@
 FileName=UIMFLibrary.dll
-Path=F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\32bit_Dll_Examples\UIMFLibrary.dll
+Path=F:\Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\32bit_Dll_Examples\UIMFLibrary.dll
 Version=
-Error=Exception determining Assembly info for UIMFLibrary.dll: Could not load file or assembly 'file:///F:\My Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\32bit_Dll_Examples\UIMFLibrary.dll' or one of its dependencies. An attempt was made to load a program with an incorrect format.
+Error=Exception determining Assembly info for UIMFLibrary.dll: Could not load file or assembly 'file:///F:\Documents\Projects\DataMining\DMS_Programs\DLLVersionInspector\bin\32bit_Dll_Examples\UIMFLibrary.dll' or one of its dependencies. An attempt was made to load a program with an incorrect format.
