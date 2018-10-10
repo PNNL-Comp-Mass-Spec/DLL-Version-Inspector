@@ -1,17 +1,20 @@
 Option Strict On
 
+Imports System.IO
+Imports System.Reflection
 Imports PRISM
-' This class will determine the version of a .NET DLL or a generic Windows DLL
-'
-' Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
-'
-' Started June 14, 2013
+Imports PRISM.FileProcessor
 
+''' <summary>
+'''  This class will determine the version of a .NET DLL or a generic Windows DLL
+'''  Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
+'''  Started June 14, 2013
+''' </summary>
 Public Class clsDLLVersionInspector
-    Inherits PRISM.FileProcessor.ProcessFilesBase
+    Inherits ProcessFilesBase
 
     Public Sub New()
-        MyBase.mFileDate = "June 14, 2013"
+        MyBase.mFileDate = "October 10, 2018"
         InitializeLocalVariables()
     End Sub
 
@@ -46,32 +49,26 @@ Public Class clsDLLVersionInspector
         Get
             Return mAppendToVersionInfoFile
         End Get
-        Set(value As Boolean)
-            mAppendToVersionInfoFile = value
+        Set
+            mAppendToVersionInfoFile = Value
         End Set
     End Property
 
-    Public Property GenericDLL() As Boolean
+    Public Property GenericDLL As Boolean
         Get
             Return mGenericDLL
         End Get
-        Set(value As Boolean)
-            mGenericDLL = value
+        Set
+            mGenericDLL = Value
         End Set
-    End Property
-
-    Public ReadOnly Property LocalErrorCode() As eDLLVersionInspectorErrorCodes
-        Get
-            Return mLocalErrorCode
-        End Get
     End Property
 
     Public Property ShowResultsAtConsole As Boolean
         Get
             Return mShowResultsAtConsole
         End Get
-        Set(value As Boolean)
-            mShowResultsAtConsole = value
+        Set
+            mShowResultsAtConsole = Value
         End Set
     End Property
 
@@ -79,8 +76,8 @@ Public Class clsDLLVersionInspector
         Get
             Return mVersionInfoFileName
         End Get
-        Set(value As String)
-            mVersionInfoFileName = value
+        Set
+            mVersionInfoFileName = Value
         End Set
     End Property
 #End Region
@@ -88,115 +85,106 @@ Public Class clsDLLVersionInspector
     ''' <summary>
     ''' Determines the version of a .NET DLL
     ''' </summary>
-    ''' <param name="strDLLFilePath"></param>
-    ''' <param name="strOutputFolderPath"></param>
-    ''' <param name="strVersionInfoFileName"></param>
+    ''' <param name="dllFilePath"></param>
+    ''' <param name="outputDirectoryPath"></param>
     ''' <returns>True if success, false if an error</returns>
     ''' <remarks></remarks>
-    Protected Function DetermineVersionDotNETDll(ByVal strDLLFilePath As String, ByVal strOutputFolderPath As String, ByVal strVersionInfoFileName As String) As Boolean
+    Protected Function DetermineVersionDotNETDll(dllFilePath As String, outputDirectoryPath As String) As Boolean
 
-        Dim ioFileInfo As System.IO.FileInfo
-        Dim strToolVersionInfo As String = String.Empty
-        Dim blnSuccess As Boolean = False
+        Dim toolVersionInfo As String = String.Empty
 
         Try
-            ioFileInfo = New System.IO.FileInfo(strDLLFilePath)
+            Dim dllInfo = New FileInfo(dllFilePath)
 
-            If Not ioFileInfo.Exists Then
-                Dim strErrorMessage As String = "Error: File not found: " & strDLLFilePath
-                ShowErrorMessage(strErrorMessage)
-                SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo, strErrorMessage)
-                blnSuccess = False
+            If Not dllInfo.Exists Then
+                Dim errorMessage As String = "Error: File not found: " & dllFilePath
+                ShowErrorMessage(errorMessage)
+                SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage)
+                Return False
             Else
 
-                Dim oAssemblyName As System.Reflection.AssemblyName
-                oAssemblyName = System.Reflection.Assembly.LoadFrom(ioFileInfo.FullName).GetName
+                Dim oAssemblyName As AssemblyName
+                oAssemblyName = Assembly.LoadFrom(dllInfo.FullName).GetName
 
-                strToolVersionInfo = oAssemblyName.Name & ", Version=" & oAssemblyName.Version.ToString()
+                toolVersionInfo = oAssemblyName.Name & ", Version=" & oAssemblyName.Version.ToString()
 
-                blnSuccess = SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo)
+                Dim success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo)
+                Return success
             End If
 
         Catch ex As Exception
-            ' If you get an exception regarding .NET 4.0 not being able to read a .NET 1.0 runtime, then add these lines to the end of file AnalysisManagerProg.exe.config
+            ' If you get an exception regarding .NET 4.0 not being able to read a .NET 1.0 runtime, add these lines to the end of file AnalysisManagerProg.exe.config
             '  <startup useLegacyV2RuntimeActivationPolicy="true">
             '    <supportedRuntime version="v4.0" />
             '  </startup>
-            Dim strErrorMessage As String = "Exception determining Assembly info for " & System.IO.Path.GetFileName(strDLLFilePath) & ": " & ex.Message
-            ShowErrorMessage(strErrorMessage)
-            SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo, strErrorMessage)
-            blnSuccess = False
+            Dim errorMessage As String = "Exception determining Assembly info for " & Path.GetFileName(dllFilePath) & ": " & ex.Message
+            ShowErrorMessage(errorMessage)
+            SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage)
+            Return False
         End Try
-
-        Return blnSuccess
 
     End Function
 
     ''' <summary>
     ''' Determines the version of a generic Windows DLL
     ''' </summary>
-    ''' <param name="strDLLFilePath"></param>
-    ''' <param name="strOutputFolderPath"></param>
-    ''' <param name="strVersionInfoFileName"></param>
+    ''' <param name="dllFilePath"></param>
+    ''' <param name="outputDirectoryPath"></param>
     ''' <returns>True if success, false if an error</returns>
     ''' <remarks></remarks>
-    Protected Function DetermineVersionGenericDLL(ByVal strDLLFilePath As String, ByVal strOutputFolderPath As String, ByVal strVersionInfoFileName As String) As Boolean
+    Protected Function DetermineVersionGenericDLL(dllFilePath As String, outputDirectoryPath As String) As Boolean
 
-        Dim ioFileInfo As System.IO.FileInfo
-        Dim strToolVersionInfo As String = String.Empty
-        Dim blnSuccess As Boolean = False
+        Dim toolVersionInfo As String = String.Empty
 
         Try
-            ioFileInfo = New System.IO.FileInfo(strDLLFilePath)
+            Dim dllInfo = New FileInfo(dllFilePath)
 
-            If Not ioFileInfo.Exists Then
-                Dim strErrorMessage As String = "Error: File not found: " & strDLLFilePath
-                ShowErrorMessage(strErrorMessage)
-                SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo, strErrorMessage)
-                blnSuccess = False
+            If Not dllInfo.Exists Then
+                Dim errorMessage As String = "Error: File not found: " & dllFilePath
+                ShowErrorMessage(errorMessage)
+                SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage)
+                Return False
             Else
 
-                Dim oFileVersionInfo As System.Diagnostics.FileVersionInfo
-                oFileVersionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(strDLLFilePath)
+                Dim oFileVersionInfo = FileVersionInfo.GetVersionInfo(dllFilePath)
 
-                Dim strName As String
-                Dim strVersion As String
+                Dim fileName As String
+                Dim dllVersion As String
 
-                strName = oFileVersionInfo.FileDescription
-                If String.IsNullOrEmpty(strName) Then
-                    strName = oFileVersionInfo.InternalName
+                fileName = oFileVersionInfo.FileDescription
+                If String.IsNullOrEmpty(fileName) Then
+                    fileName = oFileVersionInfo.InternalName
                 End If
 
-                If String.IsNullOrEmpty(strName) Then
-                    strName = oFileVersionInfo.FileName
+                If String.IsNullOrEmpty(fileName) Then
+                    fileName = oFileVersionInfo.FileName
                 End If
 
-                If String.IsNullOrEmpty(strName) Then
-                    strName = ioFileInfo.Name
+                If String.IsNullOrEmpty(fileName) Then
+                    fileName = dllInfo.Name
                 End If
 
-                strVersion = oFileVersionInfo.FileVersion
-                If String.IsNullOrEmpty(strVersion) Then
-                    strVersion = oFileVersionInfo.ProductVersion
+                dllVersion = oFileVersionInfo.FileVersion
+                If String.IsNullOrEmpty(dllVersion) Then
+                    dllVersion = oFileVersionInfo.ProductVersion
                 End If
 
-                If String.IsNullOrEmpty(strVersion) Then
-                    strVersion = "??"
+                If String.IsNullOrEmpty(dllVersion) Then
+                    dllVersion = "??"
                 End If
 
-                strToolVersionInfo = strName & ", Version=" & strVersion
+                toolVersionInfo = fileName & ", Version=" & dllVersion
 
-                blnSuccess = SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo)
+                Dim success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo)
+                Return success
             End If
 
         Catch ex As Exception
-            Dim strErrorMessage As String = "Exception determining Version info for " & System.IO.Path.GetFileName(strDLLFilePath) & ": " & ex.Message
-            ShowErrorMessage(strErrorMessage)
-            SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo, strErrorMessage)
-            blnSuccess = False
+            Dim errorMessage As String = "Exception determining Version info for " & Path.GetFileName(dllFilePath) & ": " & ex.Message
+            ShowErrorMessage(errorMessage)
+            SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage)
+            Return False
         End Try
-
-        Return blnSuccess
 
     End Function
 
@@ -210,35 +198,35 @@ Public Class clsDLLVersionInspector
 
     End Function
 
-    Public Shared Function GetDefaultVersionInfoFileName(ByVal strDllFileNameOrPath As String) As String
-        Return System.IO.Path.GetFileNameWithoutExtension(strDllFileNameOrPath) & "_VersionInfo.txt"
+    Public Shared Function GetDefaultVersionInfoFileName(dllFileNameOrPath As String) As String
+        Return Path.GetFileNameWithoutExtension(dllFileNameOrPath) & "_VersionInfo.txt"
     End Function
 
     Public Overrides Function GetErrorMessage() As String
         ' Returns "" if no error
 
-        Dim strErrorMessage As String
+        Dim errorMessage As String
 
-        If MyBase.ErrorCode = eProcessFilesErrorCodes.LocalizedError Or
-           MyBase.ErrorCode = eProcessFilesErrorCodes.NoError Then
+        If ErrorCode = eProcessFilesErrorCodes.LocalizedError Or
+           ErrorCode = eProcessFilesErrorCodes.NoError Then
             Select Case mLocalErrorCode
                 Case eDLLVersionInspectorErrorCodes.NoError
-                    strErrorMessage = ""
+                    errorMessage = ""
 
                 Case eDLLVersionInspectorErrorCodes.ErrorReadingInputFile
-                    strErrorMessage = "Error reading input file"
+                    errorMessage = "Error reading input file"
 
                 Case eDLLVersionInspectorErrorCodes.UnspecifiedError
-                    strErrorMessage = "Unspecified localized error"
+                    errorMessage = "Unspecified localized error"
                 Case Else
                     ' This shouldn't happen
-                    strErrorMessage = "Unknown error state"
+                    errorMessage = "Unknown error state"
             End Select
         Else
-            strErrorMessage = MyBase.GetBaseClassErrorMessage()
+            errorMessage = GetBaseClassErrorMessage()
         End If
 
-        Return strErrorMessage
+        Return errorMessage
 
     End Function
 
@@ -249,33 +237,33 @@ Public Class clsDLLVersionInspector
         mLocalErrorCode = eDLLVersionInspectorErrorCodes.NoError
     End Sub
 
-    Public Function LoadParameterFileSettings(ByVal strParameterFilePath As String) As Boolean
+    Public Function LoadParameterFileSettings(parameterFilePath As String) As Boolean
 
-        Dim objSettingsFile As New XmlSettingsFileAccessor
+        Dim settingsFile As New XmlSettingsFileAccessor
 
         Try
 
-            If strParameterFilePath Is Nothing OrElse strParameterFilePath.Length = 0 Then
+            If parameterFilePath Is Nothing OrElse parameterFilePath.Length = 0 Then
                 ' No parameter file specified; nothing to load
                 Return True
             End If
 
-            If Not System.IO.File.Exists(strParameterFilePath) Then
-                ' See if strParameterFilePath points to a file in the same directory as the application
-                strParameterFilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), System.IO.Path.GetFileName(strParameterFilePath))
-                If Not System.IO.File.Exists(strParameterFilePath) Then
+            If Not File.Exists(parameterFilePath) Then
+                ' See if parameterFilePath points to a file in the same directory as the application
+                parameterFilePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.GetFileName(parameterFilePath))
+                If Not File.Exists(parameterFilePath) Then
                     MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.ParameterFileNotFound)
                     Return False
                 End If
             End If
 
-            If objSettingsFile.LoadSettings(strParameterFilePath) Then
-                If Not objSettingsFile.SectionPresent(XML_SECTION_OPTIONS) Then
-                    ShowErrorMessage("The node '<section name=""" & XML_SECTION_OPTIONS & """> was not found in the parameter file: " & strParameterFilePath)
+            If settingsFile.LoadSettings(parameterFilePath) Then
+                If Not settingsFile.SectionPresent(XML_SECTION_OPTIONS) Then
+                    ShowErrorMessage("The node '<section name=""" & XML_SECTION_OPTIONS & """> was not found in the parameter file: " & parameterFilePath)
                     MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidParameterFile)
                     Return False
                 Else
-                    Me.GenericDLL = objSettingsFile.GetParam(XML_SECTION_OPTIONS, "GenericDLL", Me.GenericDLL)
+                    Me.GenericDLL = settingsFile.GetParam(XML_SECTION_OPTIONS, "GenericDLL", Me.GenericDLL)
                 End If
             End If
 
@@ -289,28 +277,28 @@ Public Class clsDLLVersionInspector
     End Function
 
     ''' <summary>
-    ''' Main processing function -- Calls InspectDLL
+    ''' Main processing function -- Calls DetermineVersionGenericDLL or DetermineVersionDotNETDll
     ''' </summary>
-    ''' <param name="strInputFilePath"></param>
-    ''' <param name="strOutputFolderPath"></param>
-    ''' <param name="strParameterFilePath"></param>
-    ''' <param name="blnResetErrorCode"></param>
+    ''' <param name="inputFilePath"></param>
+    ''' <param name="outputDirectoryPath"></param>
+    ''' <param name="parameterFilePath"></param>
+    ''' <param name="resetErrorCode"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Overloads Overrides Function ProcessFile(ByVal strInputFilePath As String, ByVal strOutputFolderPath As String, ByVal strParameterFilePath As String, ByVal blnResetErrorCode As Boolean) As Boolean
+    Public Overloads Overrides Function ProcessFile(inputFilePath As String, outputDirectoryPath As String, parameterFilePath As String, resetErrorCode As Boolean) As Boolean
         ' Returns True if success, False if failure
 
-        Dim ioFile As System.IO.FileInfo
-        Dim strInputFilePathFull As String
+        Dim inputFile As FileInfo
+        Dim inputFilePathFull As String
 
-        Dim blnSuccess As Boolean
+        Dim success As Boolean
 
-        If blnResetErrorCode Then
+        If resetErrorCode Then
             SetLocalErrorCode(eDLLVersionInspectorErrorCodes.NoError)
         End If
 
-        If Not LoadParameterFileSettings(strParameterFilePath) Then
-            ShowErrorMessage("Parameter file load error: " & strParameterFilePath)
+        If Not LoadParameterFileSettings(parameterFilePath) Then
+            ShowErrorMessage("Parameter file load error: " & parameterFilePath)
 
             If MyBase.ErrorCode = eProcessFilesErrorCodes.NoError Then
                 MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidParameterFile)
@@ -319,126 +307,128 @@ Public Class clsDLLVersionInspector
         End If
 
         Try
-            If strInputFilePath Is Nothing OrElse strInputFilePath.Length = 0 Then
+            If inputFilePath Is Nothing OrElse inputFilePath.Length = 0 Then
                 ShowMessage("Input file name is empty")
                 MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.InvalidInputFilePath)
-            Else
-
-                Console.WriteLine()
-                Console.WriteLine("Parsing " & System.IO.Path.GetFileName(strInputFilePath))
-
-                ' Note that CleanupFilePaths() will update mOutputFolderPath, which is used by LogMessage()
-                If Not CleanupFilePaths(strInputFilePath, strOutputFolderPath) Then
-                    MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.FilePathError)
-                Else
-
-                    MyBase.ResetProgress()
-
-                    Try
-                        ' Obtain the full path to the input file
-                        ioFile = New System.IO.FileInfo(strInputFilePath)
-                        strInputFilePathFull = ioFile.FullName
-
-                        If mGenericDLL Then
-                            blnSuccess = DetermineVersionGenericDLL(strInputFilePathFull, strOutputFolderPath, mVersionInfoFileName)
-                        Else
-                            blnSuccess = DetermineVersionDotNETDll(strInputFilePathFull, strOutputFolderPath, mVersionInfoFileName)
-                        End If
-
-
-                        If blnSuccess Then
-                            ShowMessage(String.Empty, False)
-                        Else
-                            SetLocalErrorCode(eDLLVersionInspectorErrorCodes.UnspecifiedError)
-                            ShowErrorMessage("Error")
-                        End If
-
-                    Catch ex As Exception
-                        HandleException("Error calling InspectDLL", ex)
-                    End Try
-                End If
+                Return False
             End If
+
+            Console.WriteLine()
+            Console.WriteLine("Parsing " & Path.GetFileName(inputFilePath))
+
+            ' Note that CleanupFilePaths() will update mOutputFolderPath, which is used by LogMessage()
+            If Not CleanupFilePaths(inputFilePath, outputDirectoryPath) Then
+                MyBase.SetBaseClassErrorCode(eProcessFilesErrorCodes.FilePathError)
+                Return False
+            End If
+
+            MyBase.ResetProgress()
+
+            Try
+                ' Obtain the full path to the input file
+                inputFile = New FileInfo(inputFilePath)
+                inputFilePathFull = inputFile.FullName
+
+                If mGenericDLL Then
+                    success = DetermineVersionGenericDLL(inputFilePathFull, outputDirectoryPath)
+                Else
+                    success = DetermineVersionDotNETDll(inputFilePathFull, outputDirectoryPath)
+                End If
+
+
+                If success Then
+                    ShowMessage(String.Empty, False)
+                Else
+                    SetLocalErrorCode(eDLLVersionInspectorErrorCodes.UnspecifiedError)
+                    ShowErrorMessage("Error")
+                End If
+
+            Catch ex As Exception
+                HandleException("Error calling DetermineVersionGenericDLL or DetermineVersionDotNETDll", ex)
+            End Try
+
+
+            Return success
+
         Catch ex As Exception
             HandleException("Error in ProcessFile", ex)
+            Return False
         End Try
 
-        Return blnSuccess
 
     End Function
 
-    Private Function SaveVersionInfo(ByVal strDLLFilePath As String, ByVal strOutputFolderPath As String, ByVal strVersionInfoFileName As String, ByVal strToolVersionInfo As String) As Boolean
-        Return SaveVersionInfo(strDLLFilePath, strOutputFolderPath, strVersionInfoFileName, strToolVersionInfo, String.Empty)
+    Private Function SaveVersionInfo(dllFilePath As String, outputDirectoryPath As String, toolVersionInfo As String) As Boolean
+        Return SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, String.Empty)
     End Function
 
-    Private Function SaveVersionInfo(ByVal strDLLFilePath As String, ByVal strOutputFolderPath As String, ByVal strVersionInfoFileName As String, ByVal strToolVersionInfo As String, ByVal strErrorMessage As String) As Boolean
+    Private Function SaveVersionInfo(dllFilePath As String, outputDirectoryPath As String, toolVersionInfo As String, errorMessage As String) As Boolean
 
-        Dim ioFileInfo As System.IO.FileInfo
-        Dim lstInfo As Generic.List(Of String) = New Generic.List(Of String)
+        ' This list tracks the DLL name, path, and version
+        Dim versionInfo = New List(Of String)
 
         Try
 
-            ioFileInfo = New System.IO.FileInfo(strDLLFilePath)
+            Dim dllFile = New FileInfo(dllFilePath)
 
-            If ioFileInfo.Exists Then
-                lstInfo.Add("FileName=" & ioFileInfo.Name)
-                lstInfo.Add("Path=" & ioFileInfo.FullName)
+            If dllFile.Exists Then
+                versionInfo.Add("FileName=" & dllFile.Name)
+                versionInfo.Add("Path=" & dllFile.FullName)
             Else
-                lstInfo.Add("FileName=" & System.IO.Path.GetFileName(strDLLFilePath))
-                lstInfo.Add("Path=" & strDLLFilePath)
+                versionInfo.Add("FileName=" & Path.GetFileName(dllFilePath))
+                versionInfo.Add("Path=" & dllFilePath)
             End If
 
-            lstInfo.Add("Version=" & strToolVersionInfo)
+            versionInfo.Add("Version=" & toolVersionInfo)
 
-            If Not String.IsNullOrWhiteSpace(strErrorMessage) Then
-                lstInfo.Add("Error=" & strErrorMessage)
+            If Not String.IsNullOrWhiteSpace(errorMessage) Then
+                versionInfo.Add("Error=" & errorMessage)
             End If
 
             If mShowResultsAtConsole Then
-                For Each item In lstInfo
+                For Each item In versionInfo
                     Console.WriteLine(item)
                 Next
             Else
 
-                If String.IsNullOrWhiteSpace(strVersionInfoFileName) Then
+                If String.IsNullOrWhiteSpace(mVersionInfoFileName) Then
                     ' Auto-define the output file name
-                    strVersionInfoFileName = GetDefaultVersionInfoFileName(strDLLFilePath)
+                    mVersionInfoFileName = GetDefaultVersionInfoFileName(dllFilePath)
                 End If
 
                 ' Auto-define the output file name
-                If String.IsNullOrWhiteSpace(strOutputFolderPath) Then
-                    Dim ioAppFileInfo As System.IO.FileInfo = New System.IO.FileInfo(GetAppPath())
-                    strOutputFolderPath = ioAppFileInfo.DirectoryName
+                If String.IsNullOrWhiteSpace(outputDirectoryPath) Then
+                    Dim appFileInfo = New FileInfo(GetAppPath())
+                    outputDirectoryPath = appFileInfo.DirectoryName
                 End If
 
-                Dim strVersionInfoFilePath As String
-                strVersionInfoFilePath = System.IO.Path.Combine(strOutputFolderPath, strVersionInfoFileName)
+                Dim versionInfoFilePath = Path.Combine(outputDirectoryPath, mVersionInfoFileName)
 
                 Try
-                    Dim eFileMode As IO.FileMode
+                    Dim eFileMode As FileMode
                     If mAppendToVersionInfoFile Then
-                        eFileMode = IO.FileMode.Append
+                        eFileMode = FileMode.Append
                     Else
-                        eFileMode = IO.FileMode.Create
+                        eFileMode = FileMode.Create
                     End If
 
-                    Using srOutFile As System.IO.StreamWriter = New System.IO.StreamWriter(New System.IO.FileStream(strVersionInfoFilePath, eFileMode, IO.FileAccess.Write, IO.FileShare.Read))
-                        For Each item In lstInfo
-                            srOutFile.WriteLine(item)
+                    Using writer = New StreamWriter(New FileStream(versionInfoFilePath, eFileMode, FileAccess.Write, FileShare.Read))
+                        For Each item In versionInfo
+                            writer.WriteLine(item)
                         Next
 
                         If mAppendToVersionInfoFile Then
-                            srOutFile.WriteLine()
+                            writer.WriteLine()
                         End If
 
                     End Using
 
                 Catch ex As Exception
-                    ShowErrorMessage("Exception writing the version info to the output file at " & strVersionInfoFilePath & ": " & ex.Message)
+                    ShowErrorMessage("Exception writing the version info to the output file at " & versionInfoFilePath & ": " & ex.Message)
                     Return False
                 End Try
 
             End If
-
 
         Catch ex As Exception
             ShowErrorMessage("Exception in SaveVersionInfo: " & ex.Message)
@@ -449,13 +439,13 @@ Public Class clsDLLVersionInspector
 
     End Function
 
-    Private Sub SetLocalErrorCode(ByVal eNewErrorCode As eDLLVersionInspectorErrorCodes)
+    Private Sub SetLocalErrorCode(eNewErrorCode As eDLLVersionInspectorErrorCodes)
         SetLocalErrorCode(eNewErrorCode, False)
     End Sub
 
-    Private Sub SetLocalErrorCode(ByVal eNewErrorCode As eDLLVersionInspectorErrorCodes, ByVal blnLeaveExistingErrorCodeUnchanged As Boolean)
+    Private Sub SetLocalErrorCode(eNewErrorCode As eDLLVersionInspectorErrorCodes, leaveExistingErrorCodeUnchanged As Boolean)
 
-        If blnLeaveExistingErrorCodeUnchanged AndAlso mLocalErrorCode <> eDLLVersionInspectorErrorCodes.NoError Then
+        If leaveExistingErrorCodeUnchanged AndAlso mLocalErrorCode <> eDLLVersionInspectorErrorCodes.NoError Then
             ' An error code is already defined; do not change it
         Else
             mLocalErrorCode = eNewErrorCode
