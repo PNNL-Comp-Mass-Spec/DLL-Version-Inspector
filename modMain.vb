@@ -18,7 +18,7 @@ Imports PRISM
 '
 
 Module modMain
-    Public Const PROGRAM_DATE As String = "October 9, 2018"
+    Public Const PROGRAM_DATE As String = "October 10, 2018"
 
     Private mInputFilePath As String
     Private mVersionInfoFilePath As String = String.Empty
@@ -219,7 +219,13 @@ Module modMain
                 "This program inspects a .NET DLL or .Exe to determine the version. " &
                 "This allows a 32-bit .NET application to call this program via the command prompt " &
                 "to determine the version of a 64-bit DLL or Exe. " &
-                "The program will create a VersionInfo file with the details about the DLL." &
+                "The program will create a VersionInfo file with the details about the DLL."))
+            Console.WriteLine()
+            Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
+                "By default, uses the .NET framework to inspect the DLL or .Exe; " &
+                "use the /G switch if the DLL is a generic Windows DLL."))
+            Console.WriteLine()
+            Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
                 "Alternatively, you can search for all occurrences of a given DLL in a directory and its subdirectories (use switch /S). " &
                 "In this mode, the DLL version will be displayed at the console."))
             Console.WriteLine()
@@ -230,7 +236,7 @@ Module modMain
             Console.WriteLine()
             Console.WriteLine(ConsoleMsgUtils.WrapParagraph(
                 "Use /O:VersionInfoFilePath to specify the path to the file to which this program should write the version info. " &
-                "If using /S, then use /O to specify the filename that will be created in the directory for which each DLL is found"))
+                "If using /S, use /O to specify the filename that will be created in the directory for which each DLL is found"))
             Console.WriteLine()
             Console.WriteLine(ConsoleMsgUtils.WrapParagraph("Use /G to indicate that the DLL is a generic Windows DLL, and not a .NET DLL"))
             Console.WriteLine()
