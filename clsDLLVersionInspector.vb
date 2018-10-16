@@ -14,7 +14,7 @@ Public Class clsDLLVersionInspector
     Inherits ProcessFilesBase
 
     Public Sub New()
-        MyBase.mFileDate = "October 10, 2018"
+        MyBase.mFileDate = "October 16, 2018"
         InitializeLocalVariables()
     End Sub
 
