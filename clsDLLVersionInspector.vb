@@ -14,7 +14,7 @@ Public Class clsDLLVersionInspector
     Inherits ProcessFilesBase
 
     Public Sub New()
-        MyBase.mFileDate = "October 16, 2018"
+        mFileDate = "June 20, 2024"
         InitializeLocalVariables()
     End Sub
 
@@ -398,7 +398,7 @@ Public Class clsDLLVersionInspector
 
                 ' Auto-define the output file name
                 If String.IsNullOrWhiteSpace(outputDirectoryPath) Then
-                    Dim appFileInfo = New FileInfo(GetAppPath())
+                    Dim appFileInfo = New FileInfo(AppUtils.GetAppPath())
                     outputDirectoryPath = appFileInfo.DirectoryName
                 End If
 

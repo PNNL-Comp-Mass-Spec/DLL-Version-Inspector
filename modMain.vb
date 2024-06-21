@@ -18,7 +18,7 @@ Imports PRISM
 '
 
 Module modMain
-    Public Const PROGRAM_DATE As String = "October 16, 2018"
+    Public Const PROGRAM_DATE As String = "June 20, 2024"
 
     Private mInputFilePath As String
     Private mVersionInfoFilePath As String = String.Empty
@@ -155,11 +155,11 @@ Module modMain
     End Sub
 
     Private Function GetAppVersion() As String
-        Return FileProcessor.ProcessFilesOrDirectoriesBase.GetAppVersion(PROGRAM_DATE)
+        Return AppUtils.GetAppVersion(PROGRAM_DATE)
     End Function
 
     Private Function GetAppPath() As String
-        Return FileProcessor.ProcessFilesOrDirectoriesBase.GetAppPath()
+        Return AppUtils.GetAppPath()
     End Function
 
     Private Function SetOptionsUsingCommandLineParameters(commandLineParser As clsParseCommandLine) As Boolean
