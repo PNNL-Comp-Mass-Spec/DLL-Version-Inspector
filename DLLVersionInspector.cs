@@ -22,8 +22,6 @@ namespace DLLVersionInspector
             InitializeLocalVariables();
         }
 
-        #region Constants and Enums
-
         public const string XML_SECTION_OPTIONS = "DLLVersionInspectorOptions";
 
         // Error codes specialized for this class
@@ -34,21 +32,11 @@ namespace DLLVersionInspector
             UnspecifiedError = -1
         }
 
-        #endregion
-
-        #region Structures
-
-        #endregion
-
-        #region Classwide Variables
         protected bool mAppendToVersionInfoFile;
         protected bool mGenericDLL;
         protected bool mShowResultsAtConsole = false;
         protected string mVersionInfoFileName;
         protected eDLLVersionInspectorErrorCodes mLocalErrorCode;
-        #endregion
-
-        #region Processing Options Interface Functions
 
         public bool AppendToVersionInfoFile
         {
@@ -73,7 +61,6 @@ namespace DLLVersionInspector
             get => mVersionInfoFileName;
             set => mVersionInfoFileName = value;
         }
-        #endregion
 
         /// <summary>
         /// Determines the version of a .NET DLL
