@@ -17,7 +17,7 @@ Imports PRISM
 ' -------------------------------------------------------------------------------
 '
 
-Module modMain
+Module Program
     Public Const PROGRAM_DATE As String = "June 20, 2024"
 
     Private mInputFilePath As String
@@ -88,7 +88,7 @@ Module modMain
                 End If
 
                 ' Note: the following settings will be overridden if mParameterFilePath points to a valid parameter file that has these settings defined
-                Dim dllVersionInspector = New clsDLLVersionInspector() With {
+                Dim dllVersionInspector = New DLLVersionInspector() With {
                         .LogMessagesToFile = False,
                         .AppendToVersionInfoFile = False,
                         .GenericDLL = mGenericDLL,

@@ -9,7 +9,7 @@
     </SchemaVersion>
     <ProjectGuid>{CC461921-2EB2-43F4-8AFC-CE36E100E15F}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <StartupObject>DLLVersionInspector.modMain</StartupObject>
+    <StartupObject>DLLVersionInspector.Program</StartupObject>
     <RootNamespace>DLLVersionInspector</RootNamespace>
     <AssemblyName>DLLVersionInspector</AssemblyName>
     <FileAlignment>512</FileAlignment>
@@ -99,9 +99,9 @@
     <Import Include="System.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="clsDLLVersionInspector.vb" />
+    <Compile Include="DLLVersionInspector.vb" />
     <Compile Include="GlobalSuppressions.vb" />
-    <Compile Include="modMain.vb" />
+    <Compile Include="Program.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
   </ItemGroup>
   <ItemGroup>

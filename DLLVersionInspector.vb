@@ -10,7 +10,7 @@ Imports PRISM.FileProcessor
 '''  Written by Matthew Monroe for the Department of Energy (PNNL, Richland, WA)
 '''  Started June 14, 2013
 ''' </summary>
-Public Class clsDLLVersionInspector
+Public Class DLLVersionInspector
     Inherits ProcessFilesBase
 
     Public Sub New()
