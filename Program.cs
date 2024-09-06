@@ -49,7 +49,6 @@ namespace DLLVersionInspector
         {
             int returnCode;
             var commandLineParser = new clsParseCommandLine();
-            bool proceed;
 
             mOutputDirectoryPath = string.Empty;
             mParameterFilePath = string.Empty;
@@ -64,13 +63,7 @@ namespace DLLVersionInspector
 
             try
             {
-                proceed = false;
-
-                if (commandLineParser.ParseCommandLine())
-                {
-                    if (SetOptionsUsingCommandLineParameters(commandLineParser))
-                        proceed = true;
-                }
+                var proceed = commandLineParser.ParseCommandLine() && SetOptionsUsingCommandLineParameters(commandLineParser);
 
                 if (!proceed ||
                     commandLineParser.NeedToShowHelp ||
@@ -121,8 +114,8 @@ namespace DLLVersionInspector
                         dllVersionInspector.SkipConsoleWriteIfNoDebugListener = true;
 
                         if (dllVersionInspector.ProcessFilesAndRecurseDirectories(mInputFilePath, mOutputDirectoryPath, mOutputDirectoryAlternatePath,
-                                                                                  mmRecreateDirectoryHierarchyInAlternatePath, mParameterFilePath,
-                                                                                  mMaxLevelsToRecurse))
+                                mmRecreateDirectoryHierarchyInAlternatePath, mParameterFilePath,
+                                mMaxLevelsToRecurse))
                         {
                             returnCode = 0;
                         }

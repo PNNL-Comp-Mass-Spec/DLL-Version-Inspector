@@ -64,15 +64,12 @@ namespace DLLVersionInspector
                     SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage);
                     return false;
                 }
-                else
-                {
-                    var oAssemblyName = Assembly.LoadFrom(dllInfo.FullName).GetName();
 
-                    toolVersionInfo = oAssemblyName.Name + ", Version=" + oAssemblyName.Version.ToString();
+                var oAssemblyName = Assembly.LoadFrom(dllInfo.FullName).GetName();
 
-                    var success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
-                    return success;
-                }
+                toolVersionInfo = oAssemblyName.Name + ", Version=" + oAssemblyName.Version.ToString();
+
+                return SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
             }
 
             catch (Exception ex)
@@ -110,42 +107,39 @@ namespace DLLVersionInspector
                     SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage);
                     return false;
                 }
-                else
+
+                var oFileVersionInfo = FileVersionInfo.GetVersionInfo(dllFilePath);
+
+                var fileName = oFileVersionInfo.FileDescription;
+                if (string.IsNullOrEmpty(fileName))
                 {
-                    var oFileVersionInfo = FileVersionInfo.GetVersionInfo(dllFilePath);
-
-                    var fileName = oFileVersionInfo.FileDescription;
-                    if (string.IsNullOrEmpty(fileName))
-                    {
-                        fileName = oFileVersionInfo.InternalName;
-                    }
-
-                    if (string.IsNullOrEmpty(fileName))
-                    {
-                        fileName = oFileVersionInfo.FileName;
-                    }
-
-                    if (string.IsNullOrEmpty(fileName))
-                    {
-                        fileName = dllInfo.Name;
-                    }
-
-                    var dllVersion = oFileVersionInfo.FileVersion;
-                    if (string.IsNullOrEmpty(dllVersion))
-                    {
-                        dllVersion = oFileVersionInfo.ProductVersion;
-                    }
-
-                    if (string.IsNullOrEmpty(dllVersion))
-                    {
-                        dllVersion = "??";
-                    }
-
-                    toolVersionInfo = fileName + ", Version=" + dllVersion;
-
-                    var success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
-                    return success;
+                    fileName = oFileVersionInfo.InternalName;
                 }
+
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    fileName = oFileVersionInfo.FileName;
+                }
+
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    fileName = dllInfo.Name;
+                }
+
+                var dllVersion = oFileVersionInfo.FileVersion;
+                if (string.IsNullOrEmpty(dllVersion))
+                {
+                    dllVersion = oFileVersionInfo.ProductVersion;
+                }
+
+                if (string.IsNullOrEmpty(dllVersion))
+                {
+                    dllVersion = "??";
+                }
+
+                toolVersionInfo = fileName + ", Version=" + dllVersion;
+
+                return SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
             }
             catch (Exception ex)
             {
@@ -176,25 +170,13 @@ namespace DLLVersionInspector
 
             if (ErrorCode == ProcessFilesErrorCodes.LocalizedError | ErrorCode == ProcessFilesErrorCodes.NoError)
             {
-                switch (mLocalErrorCode)
+                errorMessage = mLocalErrorCode switch
                 {
-                    case eDLLVersionInspectorErrorCodes.NoError:
-                        errorMessage = "";
-                        break;
-
-                    case eDLLVersionInspectorErrorCodes.ErrorReadingInputFile:
-                        errorMessage = "Error reading input file";
-                        break;
-
-                    case eDLLVersionInspectorErrorCodes.UnspecifiedError:
-                        errorMessage = "Unspecified localized error";
-                        break;
-
-                    default:
-                        // This shouldn't happen
-                        errorMessage = "Unknown error state";
-                        break;
-                }
+                    eDLLVersionInspectorErrorCodes.NoError => "",
+                    eDLLVersionInspectorErrorCodes.ErrorReadingInputFile => "Error reading input file",
+                    eDLLVersionInspectorErrorCodes.UnspecifiedError => "Unspecified localized error",
+                    _ => "Unknown error state" // This shouldn't happen
+                };
             }
             else
             {
@@ -243,10 +225,8 @@ namespace DLLVersionInspector
                         SetBaseClassErrorCode(ProcessFilesErrorCodes.InvalidParameterFile);
                         return false;
                     }
-                    else
-                    {
-                        GenericDLL = settingsFile.GetParam(XML_SECTION_OPTIONS, "GenericDLL", GenericDLL);
-                    }
+
+                    GenericDLL = settingsFile.GetParam(XML_SECTION_OPTIONS, "GenericDLL", GenericDLL);
                 }
             }
 
@@ -404,25 +384,16 @@ namespace DLLVersionInspector
 
                     try
                     {
-                        FileMode eFileMode;
+                        var eFileMode = AppendToVersionInfoFile ? FileMode.Append : FileMode.Create;
+
+                        using var writer = new StreamWriter(new FileStream(versionInfoFilePath, eFileMode, FileAccess.Write, FileShare.Read));
+
+                        foreach (var item in versionInfo)
+                            writer.WriteLine(item);
+
                         if (AppendToVersionInfoFile)
                         {
-                            eFileMode = FileMode.Append;
-                        }
-                        else
-                        {
-                            eFileMode = FileMode.Create;
-                        }
-
-                        using (var writer = new StreamWriter(new FileStream(versionInfoFilePath, eFileMode, FileAccess.Write, FileShare.Read)))
-                        {
-                            foreach (var item in versionInfo)
-                                writer.WriteLine(item);
-
-                            if (AppendToVersionInfoFile)
-                            {
-                                writer.WriteLine();
-                            }
+                            writer.WriteLine();
                         }
                     }
                     catch (Exception ex)
