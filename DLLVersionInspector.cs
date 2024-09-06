@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 using System.IO;
 using System.Reflection;
 using PRISM;
@@ -52,7 +51,7 @@ namespace DLLVersionInspector
         protected bool DetermineVersionDotNETDll(string dllFilePath, string outputDirectoryPath)
         {
 
-            string toolVersionInfo = string.Empty;
+            var toolVersionInfo = string.Empty;
 
             try
             {
@@ -60,20 +59,18 @@ namespace DLLVersionInspector
 
                 if (!dllInfo.Exists)
                 {
-                    string errorMessage = "Error: File not found: " + dllFilePath;
+                    var errorMessage = "Error: File not found: " + dllFilePath;
                     ShowErrorMessage(errorMessage);
                     SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage);
                     return false;
                 }
                 else
                 {
-
-                    AssemblyName oAssemblyName;
-                    oAssemblyName = Assembly.LoadFrom(dllInfo.FullName).GetName();
+                    var oAssemblyName = Assembly.LoadFrom(dllInfo.FullName).GetName();
 
                     toolVersionInfo = oAssemblyName.Name + ", Version=" + oAssemblyName.Version.ToString();
 
-                    bool success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
+                    var success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
                     return success;
                 }
             }
@@ -84,7 +81,7 @@ namespace DLLVersionInspector
                 // <startup useLegacyV2RuntimeActivationPolicy="true">
                 // <supportedRuntime version="v4.0" />
                 // </startup>
-                string errorMessage = "Exception determining Assembly info for " + Path.GetFileName(dllFilePath) + ": " + ex.Message;
+                var errorMessage = "Exception determining Assembly info for " + Path.GetFileName(dllFilePath) + ": " + ex.Message;
                 ShowErrorMessage(errorMessage);
                 SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage);
                 return false;
@@ -100,7 +97,7 @@ namespace DLLVersionInspector
         /// <remarks></remarks>
         protected bool DetermineVersionGenericDLL(string dllFilePath, string outputDirectoryPath)
         {
-            string toolVersionInfo = string.Empty;
+            var toolVersionInfo = string.Empty;
 
             try
             {
@@ -108,7 +105,7 @@ namespace DLLVersionInspector
 
                 if (!dllInfo.Exists)
                 {
-                    string errorMessage = "Error: File not found: " + dllFilePath;
+                    var errorMessage = "Error: File not found: " + dllFilePath;
                     ShowErrorMessage(errorMessage);
                     SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage);
                     return false;
@@ -117,10 +114,7 @@ namespace DLLVersionInspector
                 {
                     var oFileVersionInfo = FileVersionInfo.GetVersionInfo(dllFilePath);
 
-                    string fileName;
-                    string dllVersion;
-
-                    fileName = oFileVersionInfo.FileDescription;
+                    var fileName = oFileVersionInfo.FileDescription;
                     if (string.IsNullOrEmpty(fileName))
                     {
                         fileName = oFileVersionInfo.InternalName;
@@ -136,7 +130,7 @@ namespace DLLVersionInspector
                         fileName = dllInfo.Name;
                     }
 
-                    dllVersion = oFileVersionInfo.FileVersion;
+                    var dllVersion = oFileVersionInfo.FileVersion;
                     if (string.IsNullOrEmpty(dllVersion))
                     {
                         dllVersion = oFileVersionInfo.ProductVersion;
@@ -149,13 +143,13 @@ namespace DLLVersionInspector
 
                     toolVersionInfo = fileName + ", Version=" + dllVersion;
 
-                    bool success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
+                    var success = SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo);
                     return success;
                 }
             }
             catch (Exception ex)
             {
-                string errorMessage = "Exception determining Version info for " + Path.GetFileName(dllFilePath) + ": " + ex.Message;
+                var errorMessage = "Exception determining Version info for " + Path.GetFileName(dllFilePath) + ": " + ex.Message;
                 ShowErrorMessage(errorMessage);
                 SaveVersionInfo(dllFilePath, outputDirectoryPath, toolVersionInfo, errorMessage);
                 return false;
@@ -272,15 +266,10 @@ namespace DLLVersionInspector
         /// <param name="outputDirectoryPath"></param>
         /// <param name="parameterFilePath"></param>
         /// <param name="resetErrorCode"></param>
-        /// <returns></returns>
+        /// <returns>True if success, False if failure</returns>
         /// <remarks></remarks>
         public override bool ProcessFile(string inputFilePath, string outputDirectoryPath, string parameterFilePath, bool resetErrorCode)
         {
-            // Returns True if success, False if failure
-
-            FileInfo inputFile;
-            string inputFilePathFull;
-
             var success = default(bool);
 
             if (resetErrorCode)
@@ -323,8 +312,8 @@ namespace DLLVersionInspector
                 try
                 {
                     // Obtain the full path to the input file
-                    inputFile = new FileInfo(inputFilePath);
-                    inputFilePathFull = inputFile.FullName;
+                    var inputFile = new FileInfo(inputFilePath);
+                    var inputFilePathFull = inputFile.FullName;
 
                     if (GenericDLL)
                     {
@@ -334,7 +323,6 @@ namespace DLLVersionInspector
                     {
                         success = DetermineVersionDotNETDll(inputFilePathFull, outputDirectoryPath);
                     }
-
 
                     if (success)
                     {
@@ -412,7 +400,7 @@ namespace DLLVersionInspector
                         outputDirectoryPath = appFileInfo.DirectoryName;
                     }
 
-                    string versionInfoFilePath = Path.Combine(outputDirectoryPath, VersionInfoFileName);
+                    var versionInfoFilePath = Path.Combine(outputDirectoryPath, VersionInfoFileName);
 
                     try
                     {

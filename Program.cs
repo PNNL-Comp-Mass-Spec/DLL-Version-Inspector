@@ -82,7 +82,7 @@ namespace DLLVersionInspector
                 }
                 else
                 {
-                    string versionInfoFileName = string.Empty;
+                    var versionInfoFileName = string.Empty;
                     if (!string.IsNullOrWhiteSpace(mVersionInfoFilePath))
                     {
                         var versionInfoFile = new FileInfo(mVersionInfoFilePath);
@@ -191,7 +191,7 @@ namespace DLLVersionInspector
         {
             // Returns True if no problems; otherwise, returns false
 
-            string value = string.Empty;
+            var value = string.Empty;
             var validParameters = new List<string>() { "I", "O", "G", "S", "C" };
 
             try
