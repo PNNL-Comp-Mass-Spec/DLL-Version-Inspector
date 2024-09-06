@@ -32,35 +32,15 @@ namespace DLLVersionInspector
             UnspecifiedError = -1
         }
 
-        protected bool mAppendToVersionInfoFile;
-        protected bool mGenericDLL;
-        protected bool mShowResultsAtConsole = false;
-        protected string mVersionInfoFileName;
         protected eDLLVersionInspectorErrorCodes mLocalErrorCode;
 
-        public bool AppendToVersionInfoFile
-        {
-            get => mAppendToVersionInfoFile;
-            set => mAppendToVersionInfoFile = value;
-        }
+        public bool AppendToVersionInfoFile { get; set; }
 
-        public bool GenericDLL
-        {
-            get => mGenericDLL;
-            set => mGenericDLL = value;
-        }
+        public bool GenericDLL { get; set; }
 
-        public bool ShowResultsAtConsole
-        {
-            get => mShowResultsAtConsole;
-            set => mShowResultsAtConsole = value;
-        }
+        public bool ShowResultsAtConsole { get; set; } = false;
 
-        public string VersionInfoFileName
-        {
-            get => mVersionInfoFileName;
-            set => mVersionInfoFileName = value;
-        }
+        public string VersionInfoFileName { get; set; }
 
         /// <summary>
         /// Determines the version of a .NET DLL
@@ -232,9 +212,9 @@ namespace DLLVersionInspector
 
         private void InitializeLocalVariables()
         {
-            mGenericDLL = false;
-            mShowResultsAtConsole = false;
-            mVersionInfoFileName = string.Empty;
+            GenericDLL = false;
+            ShowResultsAtConsole = false;
+            VersionInfoFileName = string.Empty;
             mLocalErrorCode = eDLLVersionInspectorErrorCodes.NoError;
         }
 
@@ -346,7 +326,7 @@ namespace DLLVersionInspector
                     inputFile = new FileInfo(inputFilePath);
                     inputFilePathFull = inputFile.FullName;
 
-                    if (mGenericDLL)
+                    if (GenericDLL)
                     {
                         success = DetermineVersionGenericDLL(inputFilePathFull, outputDirectoryPath);
                     }
@@ -412,17 +392,17 @@ namespace DLLVersionInspector
                     versionInfo.Add("Error=" + errorMessage);
                 }
 
-                if (mShowResultsAtConsole)
+                if (ShowResultsAtConsole)
                 {
                     foreach (var item in versionInfo)
                         Console.WriteLine(item);
                 }
                 else
                 {
-                    if (string.IsNullOrWhiteSpace(mVersionInfoFileName))
+                    if (string.IsNullOrWhiteSpace(VersionInfoFileName))
                     {
                         // Auto-define the output file name
-                        mVersionInfoFileName = GetDefaultVersionInfoFileName(dllFilePath);
+                        VersionInfoFileName = GetDefaultVersionInfoFileName(dllFilePath);
                     }
 
                     // Auto-define the output file name
@@ -432,12 +412,12 @@ namespace DLLVersionInspector
                         outputDirectoryPath = appFileInfo.DirectoryName;
                     }
 
-                    string versionInfoFilePath = Path.Combine(outputDirectoryPath, mVersionInfoFileName);
+                    string versionInfoFilePath = Path.Combine(outputDirectoryPath, VersionInfoFileName);
 
                     try
                     {
                         FileMode eFileMode;
-                        if (mAppendToVersionInfoFile)
+                        if (AppendToVersionInfoFile)
                         {
                             eFileMode = FileMode.Append;
                         }
@@ -451,7 +431,7 @@ namespace DLLVersionInspector
                             foreach (var item in versionInfo)
                                 writer.WriteLine(item);
 
-                            if (mAppendToVersionInfoFile)
+                            if (AppendToVersionInfoFile)
                             {
                                 writer.WriteLine();
                             }
