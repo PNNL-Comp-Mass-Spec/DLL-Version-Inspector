@@ -25,5 +25,6 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)bin\$(Platform)\$(TargetName)_$(Platform).*&quot; /D /Y" />
     <Exec Command="xcopy &quot;$(TargetDir)$(TargetName).exe.config&quot; &quot;$(ProjectDir)bin\$(Platform)\$(TargetName)_$(Platform).exe.*&quot; /D /Y" />
+    <Exec Command="xcopy &quot;$(TargetDir)PRISM.*&quot; &quot;$(ProjectDir)bin\$(Platform)\PRISM.*&quot; /D /Y" />
   </Target>
 </Project>
