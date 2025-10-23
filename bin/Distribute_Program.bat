@@ -9,9 +9,9 @@ xcopy x86\DLLVersionInspector_x86.exe        C:\DMS_Programs\DLLVersionInspector
 xcopy x86\DLLVersionInspector_x86.exe.config C:\DMS_Programs\DLLVersionInspector\ /Y /D
 xcopy x86\PRISM.dll                          C:\DMS_Programs\DLLVersionInspector\ /Y /D
 
-xcopy x86\DLLVersionInspector_x86.exe        \\PNL\projects\OmicsSW\DMS_Programs\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
-xcopy x86\DLLVersionInspector_x86.exe.config \\PNL\projects\OmicsSW\DMS_Programs\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
-xcopy x86\PRISM.dll                          \\PNL\projects\OmicsSW\DMS_Programs\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
+xcopy x86\DLLVersionInspector_x86.exe        \\Proto-3\DMS_Programs_Dist\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
+xcopy x86\DLLVersionInspector_x86.exe.config \\Proto-3\DMS_Programs_Dist\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
+xcopy x86\PRISM.dll                          \\Proto-3\DMS_Programs_Dist\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
 
 @echo off
 rem xcopy x86\DLLVersionInspector_x86.exe        F:\Documents\Projects\DataMining\DMS_Managers\Analysis_Manager\AM_Common\ /Y /D
@@ -37,8 +37,8 @@ rem copy x64\Debug\net48\DLLVersionInspector.exe.config  x64\DLLVersionInspector
 @echo on
 xcopy x64\DLLVersionInspector_x64.exe        C:\DMS_Programs\DLLVersionInspector\ /Y /D
 xcopy x64\DLLVersionInspector_x64.exe.config C:\DMS_Programs\DLLVersionInspector\ /Y /D
-xcopy x64\DLLVersionInspector_x64.exe        \\PNL\projects\OmicsSW\DMS_Programs\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
-xcopy x64\DLLVersionInspector_x64.exe.config \\PNL\projects\OmicsSW\DMS_Programs\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
+xcopy x64\DLLVersionInspector_x64.exe        \\Proto-3\DMS_Programs_Dist\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
+xcopy x64\DLLVersionInspector_x64.exe.config \\Proto-3\DMS_Programs_Dist\AnalysisToolManagerDistribution\DLLVersionInspector\ /Y /D
 
 @echo off
 rem xcopy x64\DLLVersionInspector_x64.exe        F:\Documents\Projects\DataMining\DMS_Managers\Analysis_Manager\AM_Common\ /Y /D
